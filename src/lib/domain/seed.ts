@@ -64,8 +64,12 @@ export function buildDemoSeed(): DemoSeed {
     { id: "u_um1", code: "Future UM 01", name: "เกรียงไกร ทดลอง", nick: "เกรียง", email: "um01@demo.prime", role: "um", coachId: "u_coach1", alId: "u_al1", cohortId: "co1", startDate: D(-100), currentPhase: 4, color: "#B84C00" },
     { id: "u_um2", code: "Future UM 02", name: "ปาริชาติ ทดลอง", nick: "ปา", email: "um02@demo.prime", role: "um", coachId: "u_coach1", alId: "u_al1", cohortId: "co1", startDate: D(-58), currentPhase: 3, color: "#1F58B5" },
     { id: "u_um3", code: "Future UM 03", name: "ธนวัฒน์ ทดลอง", nick: "ธน", email: "um03@demo.prime", role: "um", coachId: "u_coach1", alId: "u_al1", cohortId: "co1", startDate: D(-41), currentPhase: 2, color: "#1E7A48" },
-    { id: "u_coach1", code: "Coach 01", name: "อรุณ โค้ชทดลอง", nick: "โค้ชอรุณ", email: "coach01@demo.prime", role: "coach", coachId: null, alId: null, cohortId: null, startDate: D(0), currentPhase: 1, color: "#3B3B3B" },
-    { id: "u_al1", code: "AL 01", name: "วิภา ผู้จัดการทดลอง", nick: "พี่วิภา", email: "al01@demo.prime", role: "al", coachId: null, alId: null, cohortId: null, startDate: D(0), currentPhase: 1, color: "#111111" },
+    // Staff carry the cohort they staff on the same `cohortId` field (they aren't
+    // program participants, but this lets /team's cohort-scoped sections —
+    // Leaderboard, roster, Team Expedition creation — resolve "their" cohort
+    // without a separate staffing-assignment model, which is out of scope here.
+    { id: "u_coach1", code: "Coach 01", name: "อรุณ โค้ชทดลอง", nick: "โค้ชอรุณ", email: "coach01@demo.prime", role: "coach", coachId: null, alId: null, cohortId: "co1", startDate: D(0), currentPhase: 1, color: "#3B3B3B" },
+    { id: "u_al1", code: "AL 01", name: "วิภา ผู้จัดการทดลอง", nick: "พี่วิภา", email: "al01@demo.prime", role: "al", coachId: null, alId: null, cohortId: "co1", startDate: D(0), currentPhase: 1, color: "#111111" },
     { id: "u_admin1", code: "Admin 01", name: "แอดมิน ระบบทดลอง", nick: "แอดมิน", email: "admin01@demo.prime", role: "admin", coachId: null, alId: null, cohortId: null, startDate: D(0), currentPhase: 1, color: "#6B3FA0" },
   ];
 

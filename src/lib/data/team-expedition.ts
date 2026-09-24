@@ -1,11 +1,13 @@
 // Team Expedition (V2 §3.9): a monthly cohort-wide quest with a combined
 // progress bar; everyone in the cohort gets XP once the shared target is hit.
-// This seeded instance's metric is fixed to "candidates at Interview stage or
-// beyond" (Candidate.stage >= stageIndex('interview')) — full metric-type
-// flexibility is Admin-config territory (v1 §7), out of scope here.
+// Two real, working metrics are wired up ("interview"/"onboard" funnel-stage
+// counts) — full admin-configurable metric flexibility (v1 §7) is out of scope.
 import type { PrismaClient, TeamChallenge } from "@prisma/client";
 import { stageIndex } from "@/lib/domain/funnel";
 import { awardXp } from "@/lib/game/xp-engine";
+
+export const TEAM_CHALLENGE_METRICS = ["interview", "onboard"] as const;
+export type TeamChallengeMetric = (typeof TEAM_CHALLENGE_METRICS)[number];
 
 export interface TeamExpeditionProgress {
   challenge: TeamChallenge;
@@ -23,10 +25,10 @@ export async function checkAndCompleteTeamChallenge(prisma: PrismaClient, challe
   const cohortUsers = await prisma.user.findMany({ where: { cohortId: challenge.cohortId, role: "um" }, select: { id: true } });
   const userIds = cohortUsers.map((u) => u.id);
 
-  const actual =
-    challenge.metric === "interview"
-      ? await prisma.candidate.count({ where: { ownerId: { in: userIds }, stage: { gte: stageIndex("interview") } } })
-      : 0; // other metrics aren't wired up yet — documented limitation, not silently wrong (returns 0, never a fake "done")
+  const isKnownMetric = (TEAM_CHALLENGE_METRICS as readonly string[]).includes(challenge.metric);
+  const actual = isKnownMetric
+    ? await prisma.candidate.count({ where: { ownerId: { in: userIds }, stage: { gte: stageIndex(challenge.metric as TeamChallengeMetric) } } })
+    : 0; // other metrics aren't wired up yet — documented limitation, not silently wrong (returns 0, never a fake "done")
 
   let justCompleted = false;
   let resultChallenge = challenge;

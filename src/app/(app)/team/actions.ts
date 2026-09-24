@@ -13,6 +13,26 @@ async function requireReviewer(): Promise<string> {
   return session.user.id;
 }
 
+/** §6 "Team Expedition สร้างและติดตามได้จาก AL" — for the AL's own cohort. */
+export async function createTeamExpeditionAction(formData: FormData): Promise<void> {
+  const reviewerId = await requireReviewer();
+  const reviewer = await prisma.user.findUniqueOrThrow({ where: { id: reviewerId } });
+  if (!reviewer.cohortId) throw new Error("your account has no cohort assigned");
+
+  const title = String(formData.get("title") ?? "").trim();
+  const metric = String(formData.get("metric") ?? "");
+  const target = Number(formData.get("target") ?? 0);
+  const xpReward = Number(formData.get("xpReward") ?? 0);
+  const startAt = new Date(String(formData.get("startAt")));
+  const endAt = new Date(String(formData.get("endAt")));
+  if (!title || target <= 0 || xpReward <= 0 || isNaN(startAt.getTime()) || isNaN(endAt.getTime())) {
+    throw new Error("invalid Team Expedition input");
+  }
+
+  await prisma.teamChallenge.create({ data: { cohortId: reviewer.cohortId, title, metric, target, xpReward, startAt, endAt } });
+  revalidatePath("/team");
+}
+
 const KUDOS_DAILY_LIMIT = 3; // §3.9 "จำกัด 3 ใบ/วัน/คน" — a sending rate limit, not an anti-gaming XP cap
 
 /**

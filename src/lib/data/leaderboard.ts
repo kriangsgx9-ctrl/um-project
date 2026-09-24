@@ -23,7 +23,9 @@ export async function getWeeklyLeaderboard(prisma: PrismaClient, cohortId: strin
   if (!settings.leaderboardOn) return { enabled: false, top: [], self: null };
 
   const { start, end } = bangkokWeekRangeUtc(getBangkokWeekKey(new Date()));
-  const cohortUsers = await prisma.user.findMany({ where: { cohortId }, select: { id: true, name: true } });
+  // Future UMs only — coach/AL staff also carry this cohortId (see prisma/seed.ts)
+  // but the leaderboard is a Future UM motivation tool, not a staff scoreboard.
+  const cohortUsers = await prisma.user.findMany({ where: { cohortId, role: "um" }, select: { id: true, name: true } });
   const userIds = cohortUsers.map((u) => u.id);
 
   const grouped = await prisma.xpEvent.groupBy({

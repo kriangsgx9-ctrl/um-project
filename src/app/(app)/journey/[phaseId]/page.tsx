@@ -5,7 +5,7 @@ import { loadStoreForUser } from "@/lib/data/load-store";
 import { DONE, userById } from "@/lib/domain/actions";
 import { gateRequirements, gateStatus } from "@/lib/domain/gate";
 import { VictoryOverlay } from "@/components/VictoryOverlay";
-import { requestGateReviewAction } from "./actions";
+import { acknowledgeVictoryAction, requestGateReviewAction } from "./actions";
 
 export default async function ZoneDetailPage({ params }: { params: Promise<{ phaseId: string }> }) {
   const { phaseId } = await params;
@@ -13,7 +13,7 @@ export default async function ZoneDetailPage({ params }: { params: Promise<{ pha
   if (!session?.user?.id) redirect("/login");
   const userId = session.user.id;
 
-  const store = await loadStoreForUser(prisma, userId);
+  const [store, dbUser] = await Promise.all([loadStoreForUser(prisma, userId), prisma.user.findUniqueOrThrow({ where: { id: userId } })]);
   const user = userById(store, userId)!;
   const phase = store.phases.find((p) => p.id === phaseId);
   if (!phase) notFound();
@@ -32,7 +32,17 @@ export default async function ZoneDetailPage({ params }: { params: Promise<{ pha
 
   return (
     <div className="flex flex-col gap-6 max-w-xl">
-      {unseenVictory && <VictoryOverlay gateReviewId={unseenVictory.id} gateName={phase.gate.name} />}
+      {unseenVictory && !dbUser.professionalMode && <VictoryOverlay gateReviewId={unseenVictory.id} gateName={phase.gate.name} />}
+      {unseenVictory && dbUser.professionalMode && (
+        <div className="rounded-2xl border border-green-200 bg-green-50 p-4 text-sm text-green-800 flex items-center justify-between">
+          <span>ผ่าน {phase.gate.name} แล้ว</span>
+          <form action={acknowledgeVictoryAction.bind(null, unseenVictory.id)}>
+            <button type="submit" className="text-xs font-semibold underline">
+              รับทราบ
+            </button>
+          </form>
+        </div>
+      )}
 
       <div>
         <div className="text-xs text-zinc-400 uppercase tracking-wide">
@@ -48,9 +58,9 @@ export default async function ZoneDetailPage({ params }: { params: Promise<{ pha
       </div>
 
       <div className="rounded-2xl border border-zinc-200 p-4">
-        <h2 className="font-semibold mb-2">{phase.gate.name}</h2>
+        <h2 className="font-semibold mb-2">{dbUser.professionalMode ? `Gate Checklist — ${phase.gate.name}` : phase.gate.name}</h2>
         <div className="h-3 rounded-full bg-zinc-200 overflow-hidden">
-          <div className="h-full bg-red-500" style={{ width: `${hpPct}%` }} />
+          <div className={`h-full ${dbUser.professionalMode ? "bg-zinc-700" : "bg-red-500"}`} style={{ width: `${hpPct}%` }} />
         </div>
         <div className="text-xs text-zinc-500 mt-1">
           ผ่านแล้ว {okCount}/{reqs.length} ข้อ
@@ -74,12 +84,14 @@ export default async function ZoneDetailPage({ params }: { params: Promise<{ pha
         {status.k === "ready" && (
           <form action={requestGateReviewAction.bind(null, phaseId)} className="mt-3">
             <button type="submit" className="w-full rounded-lg bg-[#ff6b00] text-[#111111] font-semibold py-2">
-              ท้าชิง {phase.gate.name}
+              {dbUser.professionalMode ? `ขอรีวิว Gate Checklist` : `ท้าชิง ${phase.gate.name}`}
             </button>
           </form>
         )}
         {status.k === "requested" && <div className="mt-3 text-sm text-amber-600 font-medium">รอ AL รีวิว Gate</div>}
-        {status.k === "passed" && <div className="mt-3 text-sm text-green-700 font-medium">ผ่าน Gate แล้ว 🎉</div>}
+        {status.k === "passed" && (
+          <div className="mt-3 text-sm text-green-700 font-medium">ผ่าน Gate แล้ว{!dbUser.professionalMode && " 🎉"}</div>
+        )}
       </div>
 
       <div className="rounded-2xl border border-zinc-200 p-4">

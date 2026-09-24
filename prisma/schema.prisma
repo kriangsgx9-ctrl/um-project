@@ -38,6 +38,10 @@ model User {
   avatarUrl    String?
   avatarConfig Json? // V2 §3.7 SVG avatar parts, user-chosen at onboarding
   color        String? // demo avatar color, ported from prototype
+  // V2 §9 — personal display preference; hides XP/Level/Streak/Leaderboard/
+  // celebration animations on THIS user's own views. Never affects the
+  // Coach/AL Guild or Risk Radar views, which are always serious.
+  professionalMode Boolean @default(false)
   status       UserStatus @default(active)
   cohortId     String?
   cohort       Cohort?    @relation(fields: [cohortId], references: [id])

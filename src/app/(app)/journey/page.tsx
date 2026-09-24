@@ -22,14 +22,16 @@ export default async function JourneyPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="text-2xl font-bold">My Journey</h1>
-      <WorldMap
-        phases={store.phases}
-        currentPhase={user.currentPhase}
-        currentPhaseProgressPct={currentPhaseProgressPct}
-        avatarConfig={avatarConfig}
-        phasesPassed={phasesPassed}
-      />
+      <h1 className="text-2xl font-bold">{dbUser.professionalMode ? "Journey" : "My Journey"}</h1>
+      {!dbUser.professionalMode && (
+        <WorldMap
+          phases={store.phases}
+          currentPhase={user.currentPhase}
+          currentPhaseProgressPct={currentPhaseProgressPct}
+          avatarConfig={avatarConfig}
+          phasesPassed={phasesPassed}
+        />
+      )}
       <ul className="flex flex-col gap-2">
         {store.phases.map((p) => (
           <li key={p.id}>

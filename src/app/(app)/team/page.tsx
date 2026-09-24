@@ -1,9 +1,15 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getWeeklyLeaderboard } from "@/lib/data/leaderboard";
-import { checkAndCompleteTeamChallenge, getActiveTeamChallenge } from "@/lib/data/team-expedition";
-import { approveGateAction, needsDevGateAction, sendKudosAction } from "./actions";
+import { checkAndCompleteTeamChallenge, getActiveTeamChallenge, TEAM_CHALLENGE_METRICS } from "@/lib/data/team-expedition";
+import { loadStoreForUser } from "@/lib/data/load-store";
+import { riskLevel } from "@/lib/domain/risk";
+import { DEFAULT_AVATAR_CONFIG, renderAvatarSvg, type AvatarConfig } from "@/lib/avatar";
+import { approveGateAction, createTeamExpeditionAction, needsDevGateAction, sendKudosAction } from "./actions";
+
+const RISK_DOT = { green: "bg-green-500", amber: "bg-amber-500", red: "bg-red-500" } as const;
 
 export default async function TeamPage() {
   const session = await auth();
@@ -12,9 +18,10 @@ export default async function TeamPage() {
 
   const dbUser = await prisma.user.findUniqueOrThrow({ where: { id: userId } });
   const isReviewer = session.user.role === "al" || session.user.role === "admin";
+  const isGuildLeader = session.user.role === "coach" || session.user.role === "al" || session.user.role === "admin";
 
   const [leaderboard, roster, activeChallenge] = await Promise.all([
-    dbUser.cohortId ? getWeeklyLeaderboard(prisma, dbUser.cohortId, userId) : null,
+    dbUser.cohortId && !dbUser.professionalMode ? getWeeklyLeaderboard(prisma, dbUser.cohortId, userId) : null,
     dbUser.cohortId ? prisma.user.findMany({ where: { cohortId: dbUser.cohortId, id: { not: userId } }, orderBy: { name: "asc" } }) : [],
     dbUser.cohortId ? getActiveTeamChallenge(prisma, dbUser.cohortId) : null,
   ]);
@@ -28,9 +35,98 @@ export default async function TeamPage() {
       })
     : [];
 
+  // Guild Dashboard (§6): coach sees their assignees, AL sees their team, admin sees everyone.
+  const guildMembers = isGuildLeader
+    ? await prisma.user.findMany({
+        where: {
+          role: "um",
+          ...(session.user.role === "coach" ? { coachId: userId } : session.user.role === "al" ? { alId: userId } : {}),
+        },
+        orderBy: { name: "asc" },
+      })
+    : [];
+  const guildCards = await Promise.all(
+    guildMembers.map(async (m) => {
+      const [progress, store] = await Promise.all([
+        prisma.userProgress.findUnique({ where: { userId: m.id } }),
+        loadStoreForUser(prisma, m.id),
+      ]);
+      const phase = store.phases.find((p) => p.no === m.currentPhase);
+      const avatarConfig = (m.avatarConfig as AvatarConfig | null) ?? DEFAULT_AVATAR_CONFIG;
+      return {
+        id: m.id,
+        name: m.name,
+        avatarConfig,
+        level: progress?.level ?? 1,
+        streak: progress?.streak ?? 0,
+        phaseKey: phase?.key ?? "-",
+        risk: riskLevel(store, m.id),
+      };
+    })
+  );
+
   return (
     <div className="flex flex-col gap-6 max-w-2xl">
       <h1 className="text-2xl font-bold">Team</h1>
+
+      {isGuildLeader && (
+        <div className="rounded-2xl border border-zinc-200 p-4">
+          <h2 className="font-semibold mb-3">Guild Dashboard ({guildCards.length})</h2>
+          {guildCards.length === 0 ? (
+            <p className="text-sm text-zinc-500">ยังไม่มี Future UM ที่คุณดูแล</p>
+          ) : (
+            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {guildCards.map((m) => (
+                <Link key={m.id} href={`/team/${m.id}`} className="rounded-xl border border-zinc-200 p-3 flex items-center gap-3 hover:border-zinc-300">
+                  <div className="w-10 h-10 rounded-full overflow-hidden bg-[#111111] grid place-items-center flex-none">
+                    {renderAvatarSvg(m.avatarConfig, 0, 40)}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-sm font-medium truncate">{m.name}</div>
+                    <div className="text-xs text-zinc-500">
+                      Lv.{m.level} · 🔥{m.streak} · {m.phaseKey}
+                    </div>
+                  </div>
+                  <span className={`w-2.5 h-2.5 rounded-full flex-none ${RISK_DOT[m.risk]}`} aria-label={`risk: ${m.risk}`} />
+                </Link>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+
+      {isReviewer && (
+        <div className="rounded-2xl border border-zinc-200 p-4">
+          <h2 className="font-semibold mb-3">สร้าง Team Expedition</h2>
+          <form action={createTeamExpeditionAction} className="flex flex-col gap-2">
+            <input name="title" required placeholder="ชื่อภารกิจ เช่น ทั้งทีมสัมภาษณ์รวม 30 คน" className="border border-zinc-300 rounded-lg px-2 py-1.5 text-sm" />
+            <div className="grid grid-cols-3 gap-2">
+              <select name="metric" className="border border-zinc-300 rounded-lg px-2 py-1.5 text-sm">
+                {TEAM_CHALLENGE_METRICS.map((m) => (
+                  <option key={m} value={m}>
+                    {m}
+                  </option>
+                ))}
+              </select>
+              <input name="target" type="number" min={1} required placeholder="เป้าหมาย" className="border border-zinc-300 rounded-lg px-2 py-1.5 text-sm" />
+              <input name="xpReward" type="number" min={1} required placeholder="XP รางวัล" className="border border-zinc-300 rounded-lg px-2 py-1.5 text-sm" />
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <label className="text-xs text-zinc-500 flex flex-col gap-1">
+                เริ่ม
+                <input name="startAt" type="date" required className="border border-zinc-300 rounded-lg px-2 py-1.5 text-sm" />
+              </label>
+              <label className="text-xs text-zinc-500 flex flex-col gap-1">
+                สิ้นสุด
+                <input name="endAt" type="date" required className="border border-zinc-300 rounded-lg px-2 py-1.5 text-sm" />
+              </label>
+            </div>
+            <button type="submit" className="rounded-lg bg-[#1e7a48] text-white font-semibold py-2 mt-1">
+              สร้าง Team Expedition
+            </button>
+          </form>
+        </div>
+      )}
 
       {leaderboard?.enabled && (
         <div className="rounded-2xl border border-zinc-200 p-4">
@@ -128,7 +224,7 @@ export default async function TeamPage() {
         </div>
       )}
 
-      <p className="text-xs text-zinc-400">Coach/Team Dashboard เต็มรูปแบบ (V1 §19, risk radar ฯลฯ) ลงในสปรินต์ถัดไป</p>
+      <p className="text-xs text-zinc-400">สรุปทีมแบบรวม (Total/Ready/At Risk) และตาราง roster เต็มรูปแบบ (V1 §19) ลงในสปรินต์ QA ถัดไป</p>
     </div>
   );
 }

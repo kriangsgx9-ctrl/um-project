@@ -16,3 +16,15 @@ export async function updateAvatarAction(config: AvatarConfig): Promise<void> {
   revalidatePath("/journey");
   revalidatePath("/dashboard");
 }
+
+/** V2 §9 — a personal display preference; never affects the Coach/AL Guild view. */
+export async function setProfessionalModeAction(enabled: boolean): Promise<void> {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error("not authenticated");
+
+  await prisma.user.update({ where: { id: session.user.id }, data: { professionalMode: enabled } });
+  revalidatePath("/profile");
+  revalidatePath("/dashboard");
+  revalidatePath("/journey");
+  revalidatePath("/team");
+}
