@@ -12,6 +12,7 @@ import {
   logKpiAction,
   submitEvidenceAction,
 } from "@/app/(app)/quick-log/actions";
+import { MAX_EVIDENCE_FILES } from "@/lib/storage/evidence-limits";
 
 interface Candidate {
   id: string;
@@ -36,6 +37,8 @@ export function QuickLogButton({ candidates, evidenceActions }: { candidates: Ca
   const [topic, setTopic] = useState("");
   const [followUp, setFollowUp] = useState("");
   const [kpiCounts, setKpiCounts] = useState<Record<KpiMetric, number>>({ activity: 0, appointments: 0, cases: 0 });
+  const [evidenceFiles, setEvidenceFiles] = useState<File[]>([]);
+  const [evidenceError, setEvidenceError] = useState<string | null>(null);
 
   function close() {
     setOpen(false);
@@ -46,6 +49,8 @@ export function QuickLogButton({ candidates, evidenceActions }: { candidates: Ca
     setTopic("");
     setFollowUp("");
     setKpiCounts({ activity: 0, appointments: 0, cases: 0 });
+    setEvidenceFiles([]);
+    setEvidenceError(null);
   }
 
   function doContact(outcome: ContactOutcome) {
@@ -68,9 +73,16 @@ export function QuickLogButton({ candidates, evidenceActions }: { candidates: Ca
 
   function saveEvidence() {
     if (!selectedAction) return;
+    setEvidenceError(null);
     startTransition(async () => {
-      await submitEvidenceAction(selectedAction, note);
-      close();
+      try {
+        const formData = new FormData();
+        evidenceFiles.forEach((f) => formData.append("files", f));
+        await submitEvidenceAction(selectedAction, note, formData);
+        close();
+      } catch (e) {
+        setEvidenceError(e instanceof Error ? e.message : "ส่งไม่สำเร็จ ลองใหม่อีกครั้ง");
+      }
     });
   }
 
@@ -188,7 +200,7 @@ export function QuickLogButton({ candidates, evidenceActions }: { candidates: Ca
             {tab === "evidence" && (
               <div className="flex flex-col gap-3">
                 <h3 className="font-semibold">ส่งหลักฐาน</h3>
-                <p className="text-xs text-zinc-400">เวอร์ชันนี้บันทึกเป็นข้อความสรุปก่อน แนบรูปได้ในเวอร์ชันถัดไป</p>
+                <p className="text-xs text-zinc-400">แนบรูปภาพหรือ PDF ได้สูงสุด {MAX_EVIDENCE_FILES} ไฟล์ (ไม่เกิน 8MB ต่อไฟล์)</p>
                 <div className="flex flex-col gap-1 max-h-32 overflow-y-auto">
                   {evidenceActions.map((a) => (
                     <button
@@ -211,6 +223,28 @@ export function QuickLogButton({ candidates, evidenceActions }: { candidates: Ca
                   rows={3}
                   className="border border-zinc-300 rounded-lg p-2 text-sm"
                 />
+                <input
+                  type="file"
+                  multiple
+                  accept="image/jpeg,image/png,image/webp,application/pdf"
+                  aria-label="แนบไฟล์หลักฐาน (รูปภาพหรือ PDF)"
+                  onChange={(e) => setEvidenceFiles(Array.from(e.target.files ?? []).slice(0, MAX_EVIDENCE_FILES))}
+                  className="text-xs"
+                />
+                {evidenceFiles.length > 0 && (
+                  <ul className="text-xs text-zinc-500 flex flex-col gap-0.5">
+                    {evidenceFiles.map((f) => (
+                      <li key={f.name}>
+                        📎 {f.name} ({Math.ceil(f.size / 1024)} KB)
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                {evidenceError && (
+                  <p role="alert" className="text-xs text-red-600">
+                    {evidenceError}
+                  </p>
+                )}
                 <button
                   disabled={pending || !selectedAction}
                   onClick={saveEvidence}

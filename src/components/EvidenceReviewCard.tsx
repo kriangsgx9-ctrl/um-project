@@ -4,8 +4,10 @@
 // (comment required first). Pointer-drag gesture PLUS explicit buttons — the
 // buttons are not a fallback, they're required for keyboard/non-touch access
 // (v1 §42 accessibility); the swipe is a convenience on top.
+import Image from "next/image";
 import { useRef, useState, useTransition } from "react";
 import { requestRevisionAction, verifyEvidenceAction } from "@/app/(app)/team/[userId]/actions";
+import type { StoredEvidenceFile } from "@/lib/storage/evidence-files";
 
 const SWIPE_THRESHOLD = 90;
 
@@ -15,12 +17,14 @@ export function EvidenceReviewCard({
   title,
   description,
   date,
+  files,
 }: {
   targetUserId: string;
   evidenceId: string;
   title: string;
   description: string;
   date: string;
+  files: StoredEvidenceFile[];
 }) {
   const [dragX, setDragX] = useState(0);
   const [dragging, setDragging] = useState(false);
@@ -65,6 +69,28 @@ export function EvidenceReviewCard({
         <div className="font-medium text-sm">{title}</div>
         <div className="text-xs text-zinc-500 mt-1">{date}</div>
         {description && <p className="text-sm text-zinc-600 mt-2">{description}</p>}
+        {files.length > 0 && (
+          <div className="flex gap-2 mt-2 flex-wrap">
+            {files.map((f) =>
+              f.type.startsWith("image/") ? (
+                <a key={f.url} href={f.url} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>
+                  <Image src={f.url} alt={f.name} width={64} height={64} className="w-16 h-16 object-cover rounded-lg border border-zinc-200" />
+                </a>
+              ) : (
+                <a
+                  key={f.url}
+                  href={f.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  className="text-xs underline text-blue-700 px-2 py-1 border border-zinc-200 rounded-lg"
+                >
+                  📄 {f.name}
+                </a>
+              )
+            )}
+          </div>
+        )}
         <p className="text-[11px] text-zinc-400 mt-2">ปัดขวา = ยืนยัน · ปัดซ้าย = ขอแก้ไข</p>
       </div>
 

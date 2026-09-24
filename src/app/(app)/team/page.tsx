@@ -5,7 +5,8 @@ import { prisma } from "@/lib/prisma";
 import { getWeeklyLeaderboard } from "@/lib/data/leaderboard";
 import { checkAndCompleteTeamChallenge, getActiveTeamChallenge, TEAM_CHALLENGE_METRICS } from "@/lib/data/team-expedition";
 import { loadStoreForUser } from "@/lib/data/load-store";
-import { riskLevel } from "@/lib/domain/risk";
+import { isUMReady, userById } from "@/lib/domain/actions";
+import { risks, riskLevel } from "@/lib/domain/risk";
 import { DEFAULT_AVATAR_CONFIG, renderAvatarSvg, type AvatarConfig } from "@/lib/avatar";
 import { KudosForm } from "@/components/KudosForm";
 import { approveGateAction, createTeamExpeditionAction, needsDevGateAction } from "./actions";
@@ -54,6 +55,8 @@ export default async function TeamPage() {
       ]);
       const phase = store.phases.find((p) => p.no === m.currentPhase);
       const avatarConfig = (m.avatarConfig as AvatarConfig | null) ?? DEFAULT_AVATAR_CONFIG;
+      const memberUser = userById(store, m.id)!;
+      const gateSignal = risks(store, m.id).find((r) => r.key === "gate");
       return {
         id: m.id,
         name: m.name,
@@ -62,9 +65,27 @@ export default async function TeamPage() {
         streak: progress?.streak ?? 0,
         phaseKey: phase?.key ?? "-",
         risk: riskLevel(store, m.id),
+        ready: isUMReady(store, memberUser),
+        gateUpcoming: gateSignal?.lvl === "amber",
       };
     })
   );
+
+  // V1 §19 command-center summary cards. "Current Gate" counts members with an
+  // active (awaiting-review) Gate challenge right now; "Upcoming Gates" counts
+  // members whose gate deadline is close per the same signal risk.ts already
+  // computes for the Risk Radar (§20), so the two numbers never disagree.
+  const activeGateReviews = guildMembers.length
+    ? await prisma.gateReview.count({ where: { userId: { in: guildMembers.map((m) => m.id) }, status: "requested" } })
+    : 0;
+  const teamStats = {
+    total: guildCards.length,
+    ready: guildCards.filter((c) => c.ready).length,
+    developing: guildCards.filter((c) => !c.ready && c.risk === "green").length,
+    atRisk: guildCards.filter((c) => !c.ready && c.risk !== "green").length,
+    currentGate: activeGateReviews,
+    upcomingGates: guildCards.filter((c) => c.gateUpcoming).length,
+  };
 
   return (
     <div className="flex flex-col gap-6 max-w-2xl">
@@ -73,6 +94,36 @@ export default async function TeamPage() {
       {isGuildLeader && (
         <div className="rounded-2xl border border-zinc-200 p-4">
           <h2 className="font-semibold mb-3">Guild Dashboard ({guildCards.length})</h2>
+
+          {guildCards.length > 0 && (
+            <div className="grid grid-cols-3 gap-2 mb-4">
+              <div className="rounded-xl border border-zinc-200 p-2 text-center">
+                <div className="text-xl font-bold">{teamStats.total}</div>
+                <div className="text-[11px] text-zinc-500">Total</div>
+              </div>
+              <div className="rounded-xl border border-zinc-200 p-2 text-center">
+                <div className="text-xl font-bold text-green-700">{teamStats.ready}</div>
+                <div className="text-[11px] text-zinc-500">Ready</div>
+              </div>
+              <div className="rounded-xl border border-zinc-200 p-2 text-center">
+                <div className="text-xl font-bold">{teamStats.developing}</div>
+                <div className="text-[11px] text-zinc-500">Developing</div>
+              </div>
+              <div className="rounded-xl border border-zinc-200 p-2 text-center">
+                <div className="text-xl font-bold text-amber-700">{teamStats.atRisk}</div>
+                <div className="text-[11px] text-zinc-500">At Risk</div>
+              </div>
+              <div className="rounded-xl border border-zinc-200 p-2 text-center">
+                <div className="text-xl font-bold">{teamStats.currentGate}</div>
+                <div className="text-[11px] text-zinc-500">Current Gate</div>
+              </div>
+              <div className="rounded-xl border border-zinc-200 p-2 text-center">
+                <div className="text-xl font-bold">{teamStats.upcomingGates}</div>
+                <div className="text-[11px] text-zinc-500">Upcoming Gates</div>
+              </div>
+            </div>
+          )}
+
           {guildCards.length === 0 ? (
             <p className="text-sm text-zinc-500">ยังไม่มี Future UM ที่คุณดูแล</p>
           ) : (
@@ -226,7 +277,7 @@ export default async function TeamPage() {
         </div>
       )}
 
-      <p className="text-xs text-zinc-400">สรุปทีมแบบรวม (Total/Ready/At Risk) และตาราง roster เต็มรูปแบบ (V1 §19) ลงในสปรินต์ QA ถัดไป</p>
+      <p className="text-xs text-zinc-400">ตาราง roster เต็มรูปแบบ (Name/Phase/Readiness/Gate/Risk/Last Activity, V1 §19) ลงในสปรินต์ถัดไป</p>
     </div>
   );
 }

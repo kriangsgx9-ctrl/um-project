@@ -36,6 +36,9 @@ yarn-error.log*
 # vercel
 .vercel
 
+# locally-stored evidence uploads (real user files, not fixtures — see src/lib/storage/evidence-files.ts)
+/public/uploads/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

@@ -1,12 +1,14 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import type { Prisma } from "@prisma/client";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { awardFunnelStageXp, awardXp } from "@/lib/game/xp-engine";
 import { getBangkokWeekKey } from "@/lib/game/clock";
 import { defaultSettings } from "@/lib/domain/program-data";
 import { addDays, iso, monthKey, today } from "@/lib/domain/dates";
+import { saveEvidenceFiles } from "@/lib/storage/evidence-files";
 
 async function requireUserId(): Promise<string> {
   const session = await auth();
@@ -73,11 +75,11 @@ export async function logKpiAction(metric: KpiMetric, delta: number): Promise<vo
 }
 
 /**
- * §4.2 flow 3: evidence submission. MVP text-note stub — no file storage exists
- * yet (S3 is out of scope until a later sprint per v1 §31/§43), so this records
- * a real Evidence row with a note instead of an attached file/photo.
+ * §4.2 flow 3: evidence submission with real attached files (image/PDF),
+ * persisted via saveEvidenceFiles (local disk under public/uploads — see that
+ * module's comment for why, S3 is a later sprint per v1 §31/§43).
  */
-export async function submitEvidenceAction(actionId: string, note: string): Promise<void> {
+export async function submitEvidenceAction(actionId: string, note: string, formData: FormData): Promise<void> {
   const userId = await requireUserId();
   const action = await prisma.action.findUniqueOrThrow({ where: { id: actionId } });
   const now = new Date();
@@ -95,6 +97,14 @@ export async function submitEvidenceAction(actionId: string, note: string): Prom
       submittedAt: now,
     },
   });
+
+  const incomingFiles = formData.getAll("files").filter((f): f is File => f instanceof File && f.size > 0);
+  if (incomingFiles.length) {
+    const savedFiles = await saveEvidenceFiles(userId, evidence.id, incomingFiles);
+    if (savedFiles.length) {
+      await prisma.evidence.update({ where: { id: evidence.id }, data: { files: savedFiles as unknown as Prisma.InputJsonValue } });
+    }
+  }
 
   await prisma.userAction.upsert({
     where: { userId_actionId: { userId, actionId } },

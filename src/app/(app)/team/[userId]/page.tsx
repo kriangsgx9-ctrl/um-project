@@ -6,6 +6,7 @@ import { gateRequirements } from "@/lib/domain/gate";
 import { risks, riskLevel } from "@/lib/domain/risk";
 import { DEFAULT_AVATAR_CONFIG, renderAvatarSvg, type AvatarConfig } from "@/lib/avatar";
 import { EvidenceReviewCard } from "@/components/EvidenceReviewCard";
+import type { StoredEvidenceFile } from "@/lib/storage/evidence-files";
 import { assignCoachQuestAction, requireGuildAccess } from "./actions";
 
 const RISK_STYLE = {
@@ -32,7 +33,13 @@ export default async function GuildMemberPage({ params }: { params: Promise<{ us
   const riskSignals = risks(store, targetUserId);
   const level = riskLevel(store, targetUserId);
   const avatarConfig = (target.avatarConfig as AvatarConfig | null) ?? DEFAULT_AVATAR_CONFIG;
-  const pendingEvidence = store.evidence.filter((e) => e.status === "submitted");
+  // Queried directly (not via store.evidence) because the domain Store's
+  // EvidenceRecord only carries the fields risk.ts needs — description and
+  // files are review-UI-only concerns.
+  const pendingEvidence = await prisma.evidence.findMany({
+    where: { userId: targetUserId, status: "submitted" },
+    orderBy: { submittedAt: "asc" },
+  });
 
   return (
     <div className="flex flex-col gap-6 max-w-xl">
@@ -92,14 +99,16 @@ export default async function GuildMemberPage({ params }: { params: Promise<{ us
           <div className="flex flex-col gap-4">
             {pendingEvidence.map((e) => {
               const action = store.actions.find((a) => a.id === e.actionId);
+              const files = Array.isArray(e.files) ? (e.files as unknown as StoredEvidenceFile[]) : [];
               return (
                 <EvidenceReviewCard
                   key={e.id}
                   targetUserId={targetUserId}
                   evidenceId={e.id}
                   title={action?.title ?? "หลักฐาน"}
-                  description=""
-                  date={e.createdAt.slice(0, 10)}
+                  description={e.description}
+                  date={e.createdAt.toISOString().slice(0, 10)}
+                  files={files}
                 />
               );
             })}
