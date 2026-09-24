@@ -5,13 +5,22 @@ import { prisma } from "@/lib/prisma";
 import { getWeeklyLeaderboard } from "@/lib/data/leaderboard";
 import { checkAndCompleteTeamChallenge, getActiveTeamChallenge, TEAM_CHALLENGE_METRICS } from "@/lib/data/team-expedition";
 import { loadStoreForUser } from "@/lib/data/load-store";
-import { isUMReady, userById } from "@/lib/domain/actions";
-import { risks, riskLevel } from "@/lib/domain/risk";
+import { curPhase, isUMReady, userById } from "@/lib/domain/actions";
+import { ago, diffDays, today } from "@/lib/domain/dates";
+import { gateStatus } from "@/lib/domain/gate";
+import { lastActivity, risks, riskLevel } from "@/lib/domain/risk";
+import { readiness } from "@/lib/domain/readiness";
 import { DEFAULT_AVATAR_CONFIG, renderAvatarSvg, type AvatarConfig } from "@/lib/avatar";
 import { KudosForm } from "@/components/KudosForm";
 import { approveGateAction, createTeamExpeditionAction, needsDevGateAction } from "./actions";
 
-const RISK_DOT = { green: "bg-green-500", amber: "bg-amber-500", red: "bg-red-500" } as const;
+// V2 §6: the Guild/Command-Center view must never show game elements
+// (XP/Level/Streak/badges) — only serious data, hence no Lv./🔥 here.
+const RISK_STYLE = {
+  green: { bg: "bg-green-50 border-green-200 text-green-800", label: "ปกติ" },
+  amber: { bg: "bg-amber-50 border-amber-200 text-amber-800", label: "เฝ้าระวัง" },
+  red: { bg: "bg-red-50 border-red-200 text-red-800", label: "ต้องช่วยด่วน" },
+} as const;
 
 export default async function TeamPage() {
   const session = await auth();
@@ -49,23 +58,25 @@ export default async function TeamPage() {
     : [];
   const guildCards = await Promise.all(
     guildMembers.map(async (m) => {
-      const [progress, store] = await Promise.all([
-        prisma.userProgress.findUnique({ where: { userId: m.id } }),
-        loadStoreForUser(prisma, m.id),
-      ]);
+      const store = await loadStoreForUser(prisma, m.id);
       const phase = store.phases.find((p) => p.no === m.currentPhase);
       const avatarConfig = (m.avatarConfig as AvatarConfig | null) ?? DEFAULT_AVATAR_CONFIG;
       const memberUser = userById(store, m.id)!;
+      const ready = isUMReady(store, memberUser);
       const gateSignal = risks(store, m.id).find((r) => r.key === "gate");
+      const p = curPhase(store, memberUser);
       return {
         id: m.id,
         name: m.name,
         avatarConfig,
-        level: progress?.level ?? 1,
-        streak: progress?.streak ?? 0,
         phaseKey: phase?.key ?? "-",
+        dayInProgram: Math.max(1, diffDays(today(), memberUser.startDate) + 1),
+        readinessScore: readiness(store, m.id).total,
+        gateName: ready ? "UM READY" : (p?.gate.name ?? "-"),
+        gateStatusLabel: ready || !p ? "" : gateStatus(store, memberUser, p).l,
         risk: riskLevel(store, m.id),
-        ready: isUMReady(store, memberUser),
+        lastActivityLabel: ago(lastActivity(store, m.id)),
+        ready,
         gateUpcoming: gateSignal?.lvl === "amber",
       };
     })
@@ -127,22 +138,47 @@ export default async function TeamPage() {
           {guildCards.length === 0 ? (
             <p className="text-sm text-zinc-500">ยังไม่มี Future UM ที่คุณดูแล</p>
           ) : (
-            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {guildCards.map((m) => (
-                <Link key={m.id} href={`/team/${m.id}`} className="rounded-xl border border-zinc-200 p-3 flex items-center gap-3 hover:border-zinc-300">
-                  <div className="w-10 h-10 rounded-full overflow-hidden bg-[#111111] grid place-items-center flex-none">
-                    {renderAvatarSvg(m.avatarConfig, 0, 40)}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="text-sm font-medium truncate">{m.name}</div>
-                    <div className="text-xs text-zinc-500">
-                      Lv.{m.level} · 🔥{m.streak} · {m.phaseKey}
-                    </div>
-                  </div>
-                  <span className={`w-2.5 h-2.5 rounded-full flex-none ${RISK_DOT[m.risk]}`} aria-label={`risk: ${m.risk}`} />
-                </Link>
-              ))}
-            </ul>
+            <div className="overflow-x-auto -mx-4 px-4">
+              <table className="w-full text-sm border-collapse">
+                <thead>
+                  <tr className="text-left text-xs text-zinc-400 border-b border-zinc-200">
+                    <th className="py-2 pr-3 font-medium">Name</th>
+                    <th className="py-2 pr-3 font-medium">Phase</th>
+                    <th className="py-2 pr-3 font-medium">Readiness</th>
+                    <th className="py-2 pr-3 font-medium">Gate</th>
+                    <th className="py-2 pr-3 font-medium">Risk</th>
+                    <th className="py-2 pr-3 font-medium">Last Activity</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {guildCards.map((m) => (
+                    <tr key={m.id} className="border-b border-zinc-100 last:border-0">
+                      <td className="py-2 pr-3">
+                        <Link href={`/team/${m.id}`} className="flex items-center gap-2 min-w-[160px] hover:underline">
+                          <div className="w-8 h-8 rounded-full overflow-hidden bg-[#111111] grid place-items-center flex-none">
+                            {renderAvatarSvg(m.avatarConfig, 0, 32)}
+                          </div>
+                          <span className="font-medium truncate">{m.name}</span>
+                        </Link>
+                      </td>
+                      <td className="py-2 pr-3 whitespace-nowrap">
+                        {m.ready ? "UM READY" : m.phaseKey}
+                        <div className="text-xs text-zinc-400">Day {m.dayInProgram}</div>
+                      </td>
+                      <td className="py-2 pr-3 font-medium tabular-nums">{m.readinessScore}</td>
+                      <td className="py-2 pr-3 whitespace-nowrap">
+                        {m.gateName}
+                        {m.gateStatusLabel && <div className="text-xs text-zinc-400">{m.gateStatusLabel}</div>}
+                      </td>
+                      <td className="py-2 pr-3 whitespace-nowrap">
+                        <span className={`text-xs font-medium px-2 py-0.5 rounded-full border ${RISK_STYLE[m.risk].bg}`}>{RISK_STYLE[m.risk].label}</span>
+                      </td>
+                      <td className="py-2 pr-3 whitespace-nowrap text-zinc-500">{m.lastActivityLabel}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
       )}
@@ -276,8 +312,6 @@ export default async function TeamPage() {
           </ul>
         </div>
       )}
-
-      <p className="text-xs text-zinc-400">ตาราง roster เต็มรูปแบบ (Name/Phase/Readiness/Gate/Risk/Last Activity, V1 §19) ลงในสปรินต์ถัดไป</p>
     </div>
   );
 }

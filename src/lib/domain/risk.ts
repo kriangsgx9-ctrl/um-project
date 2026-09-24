@@ -17,6 +17,32 @@ export interface RiskSignal {
   cat: string;
 }
 
+/** Most recent timestamp across every kind of recorded activity for a user, or null if none. */
+export function lastActivity(store: Store, uid: string): string | null {
+  const ts: (string | null)[] = [];
+  store.userActions.forEach((x) => {
+    if (x.userId === uid) x.history.forEach((h) => ts.push(h.at));
+  });
+  store.evidence.forEach((e) => {
+    if (e.userId === uid) ts.push(e.createdAt);
+  });
+  store.candidates.forEach((c) => {
+    if (c.ownerId === uid) ts.push(c.updatedAt);
+  });
+  store.weekly.forEach((w) => {
+    if (w.userId === uid && w.submittedAt) ts.push(w.submittedAt);
+  });
+  store.coaching.forEach((c) => {
+    if (c.userId === uid && c.status === "completed") ts.push(c.date);
+  });
+  return (
+    ts
+      .filter((t): t is string => Boolean(t))
+      .sort()
+      .pop() ?? null
+  );
+}
+
 export function risks(store: Store, uid: string): RiskSignal[] {
   const u = userById(store, uid);
   if (!u || isUMReady(store, u)) return [];

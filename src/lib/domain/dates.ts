@@ -95,3 +95,13 @@ export function fmtMoney(n: number): string {
   if (Math.abs(n) >= 1e4) return "฿" + (n / 1e3).toLocaleString("th-TH", { maximumFractionDigits: 1 }) + "K";
   return "฿" + fmtN(n);
 }
+
+/** Ported from the prototype's ago(): short Thai relative-time label for a 'YYYY-MM-DD' date or null. */
+export function ago(s: string | null): string {
+  if (!s) return "—";
+  const n = diffDays(today(), s);
+  if (n <= 0) return "วันนี้";
+  if (n === 1) return "เมื่อวาน";
+  if (n < 30) return `${n} วันก่อน`;
+  return iso(s);
+}
