@@ -8,6 +8,7 @@ import { rankForLevel, xpToNextLevel } from "@/lib/game/level";
 import { curPhase, userById } from "@/lib/domain/actions";
 import { gateRequirements } from "@/lib/domain/gate";
 import { todayItems, type TodayItem } from "@/lib/domain/priorities";
+import { DEFAULT_AVATAR_CONFIG, renderAvatarSvg, type AvatarConfig } from "@/lib/avatar";
 import { completeDailyMissionAction } from "./actions";
 
 // todayItems() links are prototype-style hash paths; map to the real top-level
@@ -24,12 +25,16 @@ export default async function DashboardPage() {
   if (!session?.user?.id) redirect("/login");
   const userId = session.user.id;
 
-  const store = await loadStoreForUser(prisma, userId);
+  const [store, dbUser] = await Promise.all([
+    loadStoreForUser(prisma, userId),
+    prisma.user.findUniqueOrThrow({ where: { id: userId } }),
+  ]);
   const user = userById(store, userId)!;
   const [progress, missions] = await Promise.all([
     getOrCreateProgress(prisma, userId),
     ensureTodaysMissions(prisma, store, userId),
   ]);
+  const avatarConfig = (dbUser.avatarConfig as AvatarConfig | null) ?? DEFAULT_AVATAR_CONFIG;
   const sortedMissions = [...missions].sort((a, b) => a.kind.localeCompare(b.kind));
 
   const xpInfo = xpToNextLevel(progress.xp);
@@ -48,8 +53,8 @@ export default async function DashboardPage() {
   return (
     <div className="flex flex-col gap-6 max-w-2xl pb-20 md:pb-0">
       <div className="flex items-center gap-4">
-        <div className="w-14 h-14 rounded-full bg-[#111111] text-white grid place-items-center font-bold text-lg flex-none">
-          {user.name.slice(0, 1)}
+        <div className="w-14 h-14 rounded-full overflow-hidden bg-[#111111] grid place-items-center flex-none">
+          {renderAvatarSvg(avatarConfig, user.currentPhase - 1, 56)}
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 text-sm">

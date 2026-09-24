@@ -13,6 +13,7 @@ const NAV = [
   { href: "/evidence", label: "Evidence" },
   { href: "/promotion", label: "Promotion" },
   { href: "/team", label: "Team" },
+  { href: "/passport", label: "UM Passport" },
 ];
 
 // V2 §4.3: หน้าแรก · แผนที่ · [+ Quick Log, rendered separately as a floating

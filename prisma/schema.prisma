@@ -359,6 +359,9 @@ model GateReview {
   reviewer    User?            @relation("GateReviewReviewer", fields: [reviewerId], references: [id])
   comment     String           @default("") @db.Text
   reviewedAt  DateTime?
+  // Lets the Victory screen show exactly once per gate (V2 §13 AC): set when
+  // the Future UM dismisses the celebration after an approval.
+  acknowledgedAt DateTime?
 
   @@index([userId])
   @@index([gateId])
