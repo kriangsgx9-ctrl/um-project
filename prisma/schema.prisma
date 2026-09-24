@@ -1,0 +1,492 @@
+// PRIME UM ASCEND — Prisma schema
+// Entities from PRIME_UM_ASCEND_CLAUDE_CODE.md §32 (v1) plus the
+// gamification additions from PRIME_UM_ASCEND_V2_GAME_MODE.md §8 (v2).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ---------------------------------------------------------------------------
+// Identity & program structure (v1 §32)
+// ---------------------------------------------------------------------------
+
+enum Role {
+  um
+  coach
+  al
+  admin
+}
+
+enum UserStatus {
+  active
+  inactive
+}
+
+model User {
+  id           String     @id @default(cuid())
+  code         String?    @unique // e.g. "Future UM 01" — demo-friendly display code
+  name         String
+  nick         String?
+  email        String     @unique
+  phone        String?
+  role         Role
+  passwordHash String // credentials auth (server-side only, never exposed to client)
+  avatarUrl    String?
+  avatarConfig Json? // V2 §3.7 SVG avatar parts, user-chosen at onboarding
+  color        String? // demo avatar color, ported from prototype
+  status       UserStatus @default(active)
+  cohortId     String?
+  cohort       Cohort?    @relation(fields: [cohortId], references: [id])
+  coachId      String?
+  coach        User?      @relation("CoachedBy", fields: [coachId], references: [id])
+  coachOf      User[]     @relation("CoachedBy")
+  alId         String?
+  al           User?      @relation("ManagedBy", fields: [alId], references: [id])
+  managedBy    User[]     @relation("ManagedBy")
+  startDate    DateTime?  @db.Date // program start date, drives phase/day-offset math
+  currentPhase Int        @default(1)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  enrollments         ProgramEnrollment[]
+  userActions         UserAction[]
+  evidence            Evidence[]             @relation("EvidenceOwner")
+  reviewedEvidence    Evidence[]             @relation("EvidenceReviewer")
+  kpis                KPIRecord[]
+  candidates          Candidate[]
+  coachingGiven       CoachingSession[]      @relation("CoachingCoach")
+  coachingOwned       CoachingSession[]      @relation("CoachingOwner")
+  weeklyReviews       WeeklyReview[]
+  assessments         CompetencyAssessment[] @relation("AssessmentOwner")
+  reviewedAssessments CompetencyAssessment[] @relation("AssessmentReviewer")
+  gateReviews         GateReview[]           @relation("GateReviewOwner")
+  reviewedGates       GateReview[]           @relation("GateReviewReviewer")
+  notifications       Notification[]
+
+  xpEvents      XpEvent[]
+  progress      UserProgress?
+  dailyMissions DailyMission[]
+  badges        UserBadge[]
+  kudosSent     Kudos[]        @relation("KudosFrom")
+  kudosReceived Kudos[]        @relation("KudosTo")
+
+  @@index([cohortId])
+  @@index([coachId])
+  @@index([alId])
+}
+
+model Cohort {
+  id             String          @id @default(cuid())
+  name           String
+  startDate      DateTime        @db.Date
+  endDate        DateTime        @db.Date
+  status         String // active | planned | closed
+  users          User[]
+  teamChallenges TeamChallenge[]
+}
+
+model ProgramEnrollment {
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id])
+  cohortId       String
+  startDate      DateTime @db.Date
+  currentPhaseId String?
+  status         String
+
+  @@index([userId])
+  @@index([cohortId])
+}
+
+model Phase {
+  id        String @id // e.g. "p1".."p6", kept stable to match ported seed data
+  no        Int    @unique
+  key       String // DISCOVER | BUILD | PRODUCE | RECRUIT | LEAD | PROVE
+  th        String
+  startDay  Int
+  endDay    Int
+  objective String @db.Text
+  mission   String @db.Text
+
+  actions         Action[]
+  gate            Gate?
+  competencyLinks Competency[]
+
+  @@map("phases")
+}
+
+model Competency {
+  id          String  @id
+  category    String // production | recruitment | development | leadership | management
+  name        String
+  description String  @default("")
+  phaseId     String?
+  phase       Phase?  @relation(fields: [phaseId], references: [id])
+
+  actions     Action[]
+  assessments CompetencyAssessment[]
+}
+
+model Action {
+  id           String      @id
+  phaseId      String
+  phase        Phase       @relation(fields: [phaseId], references: [id])
+  title        String
+  description  String      @default("") @db.Text
+  category     String // Vision | Production | Recruitment | Coaching | Leadership | Management | Development
+  priority     String // critical | high | medium | low
+  required     Boolean     @default(true)
+  evidence     Boolean     @default(true) // requiredEvidence
+  evidenceHint String      @default("")
+  dueOffset    Int // days from user.startDate
+  why          String      @default("") @db.Text
+  steps        Json        @default("[]")
+  success      Json        @default("[]")
+  competencyId String?
+  competency   Competency? @relation(fields: [competencyId], references: [id])
+
+  // V2 additions (§304)
+  questType  String  @default("main") // main | side | coach
+  bonusXp    Int? // coach-assigned Coach Quest bonus XP (0-100)
+  assignedTo String? // set for a one-off Coach Quest assigned to a single user; null = template action for the whole phase
+  assignedBy String?
+
+  userActions UserAction[]
+
+  @@index([phaseId])
+}
+
+enum ActionStatus {
+  not_started
+  in_progress
+  submitted
+  waiting_review
+  verified
+  needs_revision
+  completed
+}
+
+model UserAction {
+  id          String       @id @default(cuid())
+  userId      String
+  user        User         @relation(fields: [userId], references: [id])
+  actionId    String
+  action      Action       @relation(fields: [actionId], references: [id])
+  status      ActionStatus @default(not_started)
+  startedAt   DateTime?
+  dueDate     DateTime?    @db.Date
+  completedAt DateTime?
+  notes       String       @default("") @db.Text
+  history     Json         @default("[]")
+
+  @@unique([userId, actionId])
+  @@index([userId])
+  @@index([actionId])
+}
+
+enum EvidenceStatus {
+  draft
+  submitted
+  verified
+  revision
+}
+
+model Evidence {
+  id              String         @id @default(cuid())
+  userId          String
+  user            User           @relation("EvidenceOwner", fields: [userId], references: [id])
+  actionId        String
+  phaseId         String
+  category        String
+  title           String
+  description     String         @default("") @db.Text
+  files           Json           @default("[]")
+  status          EvidenceStatus @default(draft)
+  revisionCycle   Int            @default(1) // increments each time it is sent back for revision and resubmitted
+  reviewerId      String?
+  reviewer        User?          @relation("EvidenceReviewer", fields: [reviewerId], references: [id])
+  reviewerComment String         @default("")
+  date            DateTime       @db.Date
+  createdAt       DateTime       @default(now())
+  submittedAt     DateTime?
+  reviewedAt      DateTime?
+
+  @@index([userId])
+  @@index([actionId])
+}
+
+model KPIRecord {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+  metric String // fyp | nbc | cases | activity | appointments | training | oneOnOne | teamMeetings | teamActivity | teamFyp
+  period String // 'YYYY-MM'
+  target Int
+  actual Int
+
+  @@unique([userId, period, metric])
+  @@index([userId])
+}
+
+enum CandidateStatus {
+  active
+  lost
+}
+
+model Candidate {
+  id             String          @id @default(cuid())
+  ownerId        String
+  owner          User            @relation(fields: [ownerId], references: [id])
+  name           String
+  phone          String          @default("")
+  source         String
+  stage          Int             @default(0) // index into the funnel STAGES array (0=prospect .. 6=onboard)
+  status         CandidateStatus @default(active)
+  nextAction     String          @default("")
+  nextActionDate DateTime?       @db.Date
+  notes          String          @default("") @db.Text
+  activities     Json            @default("[]")
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  @@index([ownerId])
+}
+
+model CoachingSession {
+  id           String    @id @default(cuid())
+  userId       String // the Future UM this session is about
+  user         User      @relation("CoachingOwner", fields: [userId], references: [id])
+  coachId      String // the coach who ran it — or the Future UM themself when kind='given'
+  coach        User      @relation("CoachingCoach", fields: [coachId], references: [id])
+  kind         String    @default("received") // received | given
+  withName     String    @default("")
+  date         DateTime  @db.Date
+  topic        String
+  observation  String    @default("") @db.Text
+  strength     String    @default("") @db.Text
+  gap          String    @default("") @db.Text
+  feedback     String    @default("") @db.Text
+  actionPlan   String    @default("") @db.Text
+  followUpDate DateTime? @db.Date
+  status       String // scheduled | completed
+  createdAt    DateTime  @default(now())
+
+  @@index([userId])
+  @@index([coachId])
+}
+
+model WeeklyReview {
+  id           String    @id @default(cuid())
+  userId       String
+  user         User      @relation(fields: [userId], references: [id])
+  weekStart    DateTime  @db.Date
+  happened     String    @db.Text
+  worked       String    @db.Text
+  didNotWork   String    @db.Text
+  learned      String    @db.Text
+  nextWeek     String    @db.Text
+  priorities   Json      @default("[]")
+  status       String // draft | submitted | reviewed
+  coachComment String    @default("") @db.Text
+  reviewerId   String?
+  submittedAt  DateTime?
+  reviewedAt   DateTime?
+
+  @@unique([userId, weekStart])
+  @@index([userId])
+}
+
+model CompetencyAssessment {
+  id           String     @id @default(cuid())
+  userId       String
+  user         User       @relation("AssessmentOwner", fields: [userId], references: [id])
+  competencyId String
+  competency   Competency @relation(fields: [competencyId], references: [id])
+  score        Int // 1-5 maturity level
+  reviewerId   String?
+  reviewer     User?      @relation("AssessmentReviewer", fields: [reviewerId], references: [id])
+  comment      String     @default("") @db.Text
+  assessedAt   DateTime   @default(now())
+
+  @@index([userId])
+  @@index([competencyId])
+}
+
+model Gate {
+  id          String @id @default(cuid())
+  phaseId     String @unique
+  phase       Phase  @relation(fields: [phaseId], references: [id])
+  name        String
+  description String @default("") @db.Text
+
+  requirements GateRequirement[]
+  reviews      GateReview[]
+}
+
+model GateRequirement {
+  id       String  @id @default(cuid())
+  gateId   String
+  gate     Gate    @relation(fields: [gateId], references: [id])
+  title    String
+  type     String // 'metric' — action-type requirements are derived from Action.required for the phase, not duplicated here
+  metric   String? // funnel stage key, e.g. 'contact' | 'interview'
+  min      Int?
+  required Boolean @default(true)
+  order    Int     @default(0)
+
+  @@index([gateId])
+}
+
+enum GateReviewStatus {
+  requested
+  approved
+  needs_dev
+}
+
+model GateReview {
+  id          String           @id @default(cuid())
+  userId      String
+  user        User             @relation("GateReviewOwner", fields: [userId], references: [id])
+  gateId      String
+  gate        Gate             @relation(fields: [gateId], references: [id])
+  status      GateReviewStatus @default(requested)
+  requestedAt DateTime         @default(now())
+  reviewerId  String?
+  reviewer    User?            @relation("GateReviewReviewer", fields: [reviewerId], references: [id])
+  comment     String           @default("") @db.Text
+  reviewedAt  DateTime?
+
+  @@index([userId])
+  @@index([gateId])
+}
+
+model Notification {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id])
+  type      String
+  title     String
+  message   String    @db.Text
+  link      String?
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+}
+
+// ---------------------------------------------------------------------------
+// Gamification (v2 §8) — server-authoritative XP/Level/Streak/Badges
+// ---------------------------------------------------------------------------
+
+model XpEvent {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  type       String // mission_done, evidence_verified, funnel_stage_move, gate_won, kudos_received, reversal, ...
+  amount     Int // negative for a reversal
+  sourceType String // action | evidence | candidate | coaching | weekly | gate | kudos | mission
+  sourceId   String
+  reason     String?
+  createdAt  DateTime @default(now())
+
+  @@unique([userId, type, sourceType, sourceId])
+  @@index([userId, createdAt])
+  @@index([userId, type, createdAt])
+}
+
+model UserProgress {
+  userId                 String   @id
+  user                   User     @relation(fields: [userId], references: [id])
+  xp                     Int      @default(0)
+  level                  Int      @default(1)
+  streak                 Int      @default(0)
+  bestStreak             Int      @default(0)
+  shieldsLeft            Int      @default(1)
+  lastActiveDate         String? // Bangkok 'YYYY-MM-DD', not a DateTime — avoids timezone drift in the cache
+  // Weekly Review streak is tracked separately per V2 §3.5 ("Weekly Review Streak แยกต่างหาก").
+  // Additive beyond the spec's literal §8 schema — see lib/game/streak.ts.
+  weeklyReviewStreak     Int      @default(0)
+  weeklyReviewBestStreak Int      @default(0)
+  lastWeeklyReviewWeek   String? // Bangkok ISO week key, e.g. '2026-W07'
+  avatarConfig           Json?
+  updatedAt              DateTime @updatedAt
+}
+
+model DailyMission {
+  id       String    @id @default(cuid())
+  userId   String
+  user     User      @relation(fields: [userId], references: [id])
+  date     DateTime  @db.Date
+  kind     String // call_candidates | log_kpi | quest_step | read_feedback ...
+  title    String
+  target   Int       @default(1)
+  progress Int       @default(0)
+  xp       Int
+  doneAt   DateTime?
+  link     String?
+
+  @@index([userId, date])
+}
+
+model Badge {
+  id    String @id @default(cuid())
+  key   String @unique
+  name  String
+  tiers Json // { bronze: {...}, silver: {...}, gold: {...} }
+  icon  String
+
+  userBadges UserBadge[]
+}
+
+model UserBadge {
+  id       String   @id @default(cuid())
+  userId   String
+  user     User     @relation(fields: [userId], references: [id])
+  badgeId  String
+  badge    Badge    @relation(fields: [badgeId], references: [id])
+  tier     String // bronze | silver | gold
+  earnedAt DateTime @default(now())
+
+  @@unique([userId, badgeId, tier])
+  @@index([userId])
+}
+
+model Kudos {
+  id        String   @id @default(cuid())
+  fromId    String
+  from      User     @relation("KudosFrom", fields: [fromId], references: [id])
+  toId      String
+  to        User     @relation("KudosTo", fields: [toId], references: [id])
+  message   String   @db.Text
+  createdAt DateTime @default(now())
+
+  @@index([toId])
+  @@index([fromId, createdAt])
+}
+
+model TeamChallenge {
+  id       String   @id @default(cuid())
+  cohortId String
+  cohort   Cohort   @relation(fields: [cohortId], references: [id])
+  title    String
+  metric   String
+  target   Int
+  startAt  DateTime
+  endAt    DateTime
+  xpReward Int
+
+  @@index([cohortId])
+}
+
+model GameSettings {
+  id            String  @id @default("default")
+  xpTable       Json
+  caps          Json
+  levelCurve    Json
+  leaderboardOn Boolean @default(true)
+  kudosOn       Boolean @default(true)
+}
