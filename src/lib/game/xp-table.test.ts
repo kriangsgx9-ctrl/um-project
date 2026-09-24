@@ -38,4 +38,13 @@ describe("xp-table", () => {
   it("an unknown event type throws a typed error", () => {
     expect(() => resolveXpAmount("not_a_real_type" as never, DEFAULT_XP_TABLE)).toThrow(UnknownXpEventTypeError);
   });
+
+  it("resolves team_challenge_complete from context.amount, not the table (admin-set per-challenge reward)", () => {
+    expect(resolveXpAmount("team_challenge_complete", DEFAULT_XP_TABLE, { amount: 100 })).toBe(100);
+    expect(resolveXpAmount("team_challenge_complete", DEFAULT_XP_TABLE, { amount: 250 })).toBe(250);
+  });
+
+  it("team_challenge_complete without context.amount throws", () => {
+    expect(() => resolveXpAmount("team_challenge_complete", DEFAULT_XP_TABLE)).toThrow();
+  });
 });

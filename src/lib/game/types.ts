@@ -1,7 +1,7 @@
 // Shared types for the game engine service layer (lib/game/*).
 // See PRIME_UM_ASCEND_V2_GAME_MODE.md §3.2-3.6 and §8 for the spec these implement.
 
-export type XpSourceType = "action" | "evidence" | "candidate" | "coaching" | "weekly" | "gate" | "kudos" | "mission";
+export type XpSourceType = "action" | "evidence" | "candidate" | "coaching" | "weekly" | "gate" | "kudos" | "mission" | "team";
 
 export type XpEventType =
   | "daily_mission_done"
@@ -17,11 +17,14 @@ export type XpEventType =
   | "team_coaching_logged"
   | "gate_won"
   | "kudos_received"
+  | "team_challenge_complete"
   | "reversal";
 
 export interface AwardXpContext {
   /** Required for 'funnel_stage_move': which funnel stage index was just reached. */
   stage?: number;
+  /** Required for 'team_challenge_complete': the TeamChallenge's own xpReward (admin-set, not a table constant). */
+  amount?: number;
   [key: string]: unknown;
 }
 

@@ -27,6 +27,7 @@ export const DEFAULT_XP_TABLE: XpTable = {
   team_coaching_logged: 25,
   gate_won: 500,
   kudos_received: 15,
+  team_challenge_complete: 0, // resolved from context.amount (the TeamChallenge's own xpReward), see resolveXpAmount
   reversal: 0, // reversal amount is always -(the original event's amount), never looked up here
 };
 
@@ -43,6 +44,11 @@ export function resolveXpAmount(type: XpEventType, table: XpTable, context?: Awa
     const stage = context?.stage;
     if (typeof stage !== "number") throw new Error("funnel_stage_move requires context.stage");
     return FUNNEL_STAGE_XP[stage] ?? 0;
+  }
+  if (type === "team_challenge_complete") {
+    const amount = context?.amount;
+    if (typeof amount !== "number") throw new Error("team_challenge_complete requires context.amount");
+    return amount;
   }
   return table[type];
 }

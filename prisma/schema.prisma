@@ -484,6 +484,10 @@ model TeamChallenge {
   startAt  DateTime
   endAt    DateTime
   xpReward Int
+  // Set once the combined target is reached and the XP payout has been made —
+  // avoids recomputing the aggregate on every load. XpEvent's unique
+  // constraint is still the real dedupe guarantee.
+  completedAt DateTime?
 
   @@index([cohortId])
 }

@@ -30,9 +30,10 @@ export default async function DashboardPage() {
     prisma.user.findUniqueOrThrow({ where: { id: userId } }),
   ]);
   const user = userById(store, userId)!;
-  const [progress, missions] = await Promise.all([
+  const [progress, missions, recentKudos] = await Promise.all([
     getOrCreateProgress(prisma, userId),
     ensureTodaysMissions(prisma, store, userId),
+    prisma.kudos.findMany({ where: { toId: userId }, include: { from: true }, orderBy: { createdAt: "desc" }, take: 3 }),
   ]);
   const avatarConfig = (dbUser.avatarConfig as AvatarConfig | null) ?? DEFAULT_AVATAR_CONFIG;
   const sortedMissions = [...missions].sort((a, b) => a.kind.localeCompare(b.kind));
@@ -132,8 +133,20 @@ export default async function DashboardPage() {
         </div>
       )}
 
-      <div className="rounded-2xl border border-dashed border-zinc-300 p-4 text-center text-sm text-zinc-500">
-        ยังไม่มี Kudos — ทำภารกิจต่อไปเพื่อให้โค้ชเห็นความก้าวหน้า!
+      <div className="rounded-2xl border border-zinc-200 p-4">
+        <h2 className="font-semibold mb-3">Kudos ล่าสุด</h2>
+        {recentKudos.length === 0 ? (
+          <p className="text-sm text-zinc-500 text-center">ยังไม่มี Kudos — ทำภารกิจต่อไปเพื่อให้โค้ชเห็นความก้าวหน้า!</p>
+        ) : (
+          <ul className="flex flex-col gap-2">
+            {recentKudos.map((k) => (
+              <li key={k.id} className="text-sm">
+                <span className="font-medium">{k.from.name}</span>
+                <span className="text-zinc-500">: {k.message}</span>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
     </div>
   );

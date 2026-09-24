@@ -4,10 +4,18 @@ import { prisma } from "@/lib/prisma";
 import { loadStoreForUser } from "@/lib/data/load-store";
 import { userById } from "@/lib/domain/actions";
 import { DIMS, readiness, readinessBand } from "@/lib/domain/readiness";
-import { badges } from "@/lib/domain/badges";
 import { diffDays, today } from "@/lib/domain/dates";
 import { renderAvatarSvg, DEFAULT_AVATAR_CONFIG, type AvatarConfig } from "@/lib/avatar";
 import { ReadinessRadar } from "@/components/ReadinessRadar";
+import { syncUserBadges } from "@/lib/data/badge-sync";
+import { getOrCreateProgress } from "@/lib/game/progress";
+
+const TIER_LABEL = { bronze: "Bronze", silver: "Silver", gold: "Gold" } as const;
+const TIER_COLOR = {
+  bronze: "border-[#c47a3a] bg-[#fbeee3] text-[#8a4a1f]",
+  silver: "border-[#b8c2cc] bg-[#f2f4f6] text-[#4a5560]",
+  gold: "border-[#ffb800] bg-[#fff8e6] text-[#8a6400]",
+} as const;
 
 export default async function PassportPage() {
   const session = await auth();
@@ -21,7 +29,8 @@ export default async function PassportPage() {
   const user = userById(store, userId)!;
   const r = readiness(store, userId);
   const band = readinessBand(store, r.total);
-  const badgeList = badges(store, userId);
+  const progress = await getOrCreateProgress(prisma, userId);
+  const badgeList = await syncUserBadges(prisma, store, userId, progress.bestStreak);
   const gatesPassed = store.gateReviews.filter((g) => g.status === "approved").length;
   const daysInProgram = Math.max(0, diffDays(today(), user.startDate));
   const avatarConfig = (dbUser.avatarConfig as AvatarConfig | null) ?? DEFAULT_AVATAR_CONFIG;
@@ -51,7 +60,7 @@ export default async function PassportPage() {
           <div className="text-xs text-zinc-500">Gates ผ่านแล้ว</div>
         </div>
         <div className="rounded-xl border border-zinc-200 p-3">
-          <div className="text-2xl font-bold">{badgeList.filter((b) => b.ok).length}</div>
+          <div className="text-2xl font-bold">{badgeList.filter((b) => b.tier).length}</div>
           <div className="text-xs text-zinc-500">Badges</div>
         </div>
       </div>
@@ -68,11 +77,18 @@ export default async function PassportPage() {
         <h2 className="font-semibold mb-3">Badges</h2>
         <div className="grid grid-cols-2 gap-2">
           {badgeList.map((b) => (
-            <div
-              key={b.k}
-              className={`rounded-xl border p-3 text-sm font-medium ${b.ok ? "border-[#ffb800] bg-[#fff8e6]" : "border-zinc-200 text-zinc-400"}`}
-            >
-              {b.l}
+            <div key={b.k} className={`rounded-xl border p-3 text-sm ${b.tier ? TIER_COLOR[b.tier] : "border-zinc-200 text-zinc-400"}`}>
+              <div className="font-medium">{b.l}</div>
+              {b.tier ? (
+                <div className="text-xs mt-0.5 font-semibold">{TIER_LABEL[b.tier]}</div>
+              ) : (
+                <div className="text-xs mt-0.5">ยังไม่ได้ปลดล็อก</div>
+              )}
+              {b.nextTier && (
+                <div className="text-[11px] mt-1 opacity-80">
+                  อีก {Math.max(0, b.nextThreshold! - b.current)} {b.unit} จะได้ {TIER_LABEL[b.nextTier]}
+                </div>
+              )}
             </div>
           ))}
         </div>

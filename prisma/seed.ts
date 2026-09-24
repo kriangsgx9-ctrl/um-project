@@ -196,6 +196,24 @@ async function main() {
     });
   }
 
+  const now = new Date();
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+  await prisma.teamChallenge.upsert({
+    where: { id: "tc_co1_interviews" },
+    create: {
+      id: "tc_co1_interviews",
+      cohortId: "co1",
+      title: "ทั้งทีมสัมภาษณ์รวม 20 คน",
+      metric: "interview",
+      target: 20,
+      startAt: monthStart,
+      endAt: monthEnd,
+      xpReward: 100,
+    },
+    update: {},
+  });
+
   console.log(`Seeded ${users.length} users, ${store.actions.length} actions, ${store.candidates.length} candidates.`);
 }
 
