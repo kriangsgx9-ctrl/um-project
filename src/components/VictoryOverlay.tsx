@@ -6,8 +6,22 @@
 import { useEffect } from "react";
 import confetti from "canvas-confetti";
 import { acknowledgeVictoryAction } from "@/app/(app)/journey/[phaseId]/actions";
+import { ShareCardButton } from "@/components/ShareCardButton";
+import type { AvatarConfig } from "@/lib/avatar";
 
-export function VictoryOverlay({ gateReviewId, gateName }: { gateReviewId: string; gateName: string }) {
+export function VictoryOverlay({
+  gateReviewId,
+  gateName,
+  name,
+  avatarConfig,
+  phasesPassed,
+}: {
+  gateReviewId: string;
+  gateName: string;
+  name: string;
+  avatarConfig: AvatarConfig;
+  phasesPassed: number;
+}) {
   useEffect(() => {
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (!reduced) {
@@ -22,6 +36,12 @@ export function VictoryOverlay({ gateReviewId, gateName }: { gateReviewId: strin
         <h2 className="text-xl font-bold">ชนะ {gateName}!</h2>
         <p className="text-[#ffb800] font-bold text-lg mt-2">+500 XP</p>
         <p className="text-zinc-500 text-sm mt-1">ปลดล็อกโซนใหม่แล้ว</p>
+        <div className="mt-3">
+          <ShareCardButton
+            buttonLabel="แชร์ความสำเร็จ →"
+            cardProps={{ name, avatarConfig, phasesPassed, headline: `ชนะ ${gateName}!`, subline: "+500 XP" }}
+          />
+        </div>
         <form action={acknowledgeVictoryAction.bind(null, gateReviewId)}>
           <button type="submit" className="mt-6 w-full rounded-lg bg-[#ff6b00] text-[#111111] font-semibold py-2">
             ไปต่อ

@@ -9,6 +9,8 @@ import { renderAvatarSvg, DEFAULT_AVATAR_CONFIG, type AvatarConfig } from "@/lib
 import { ReadinessRadar } from "@/components/ReadinessRadar";
 import { syncUserBadges } from "@/lib/data/badge-sync";
 import { getOrCreateProgress } from "@/lib/game/progress";
+import { rankForLevel } from "@/lib/game/level";
+import { ShareCardButton } from "@/components/ShareCardButton";
 
 const TIER_LABEL = { bronze: "Bronze", silver: "Silver", gold: "Gold" } as const;
 const TIER_COLOR = {
@@ -46,6 +48,18 @@ export default async function PassportPage() {
           <div className="text-sm text-zinc-400">{user.code}</div>
           <div className="text-sm text-zinc-400">
             Phase {user.currentPhase}/{store.phases.length} · วันที่ {daysInProgram} ในโปรแกรม
+          </div>
+          <div className="mt-2">
+            <ShareCardButton
+              buttonLabel="แชร์การ์ดความสำเร็จ →"
+              cardProps={{
+                name: user.name,
+                avatarConfig,
+                phasesPassed: user.currentPhase - 1,
+                headline: `Level ${progress.level} · ${rankForLevel(progress.level)}`,
+                subline: `🔥 Streak ${progress.streak} วัน`,
+              }}
+            />
           </div>
         </div>
       </div>
@@ -87,6 +101,20 @@ export default async function PassportPage() {
               {b.nextTier && (
                 <div className="text-[11px] mt-1 opacity-80">
                   อีก {Math.max(0, b.nextThreshold! - b.current)} {b.unit} จะได้ {TIER_LABEL[b.nextTier]}
+                </div>
+              )}
+              {b.tier && (
+                <div className="mt-2">
+                  <ShareCardButton
+                    buttonLabel="แชร์ →"
+                    cardProps={{
+                      name: user.name,
+                      avatarConfig,
+                      phasesPassed: user.currentPhase - 1,
+                      headline: `ปลดล็อก Badge: ${b.l}`,
+                      subline: TIER_LABEL[b.tier],
+                    }}
+                  />
                 </div>
               )}
             </div>

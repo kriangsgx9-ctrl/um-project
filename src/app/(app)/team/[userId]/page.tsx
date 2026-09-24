@@ -110,8 +110,8 @@ export default async function GuildMemberPage({ params }: { params: Promise<{ us
       <div className="rounded-2xl border border-zinc-200 p-4">
         <h2 className="font-semibold mb-3">มอบหมาย Coach Quest</h2>
         <form action={assignCoachQuestAction.bind(null, targetUserId)} className="flex flex-col gap-2">
-          <input name="title" required placeholder="ชื่อภารกิจ" className="border border-zinc-300 rounded-lg px-2 py-1.5 text-sm" />
-          <textarea name="description" placeholder="รายละเอียด (ถ้ามี)" rows={2} className="border border-zinc-300 rounded-lg px-2 py-1.5 text-sm" />
+          <input name="title" required aria-label="ชื่อภารกิจ" placeholder="ชื่อภารกิจ" className="border border-zinc-300 rounded-lg px-2 py-1.5 text-sm" />
+          <textarea name="description" aria-label="รายละเอียดภารกิจ" placeholder="รายละเอียด (ถ้ามี)" rows={2} className="border border-zinc-300 rounded-lg px-2 py-1.5 text-sm" />
           <div className="grid grid-cols-2 gap-2">
             <label className="text-xs text-zinc-500 flex flex-col gap-1">
               กำหนดส่ง (วัน)

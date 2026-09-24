@@ -7,7 +7,8 @@ import { checkAndCompleteTeamChallenge, getActiveTeamChallenge, TEAM_CHALLENGE_M
 import { loadStoreForUser } from "@/lib/data/load-store";
 import { riskLevel } from "@/lib/domain/risk";
 import { DEFAULT_AVATAR_CONFIG, renderAvatarSvg, type AvatarConfig } from "@/lib/avatar";
-import { approveGateAction, createTeamExpeditionAction, needsDevGateAction, sendKudosAction } from "./actions";
+import { KudosForm } from "@/components/KudosForm";
+import { approveGateAction, createTeamExpeditionAction, needsDevGateAction } from "./actions";
 
 const RISK_DOT = { green: "bg-green-500", amber: "bg-amber-500", red: "bg-red-500" } as const;
 
@@ -99,17 +100,23 @@ export default async function TeamPage() {
         <div className="rounded-2xl border border-zinc-200 p-4">
           <h2 className="font-semibold mb-3">สร้าง Team Expedition</h2>
           <form action={createTeamExpeditionAction} className="flex flex-col gap-2">
-            <input name="title" required placeholder="ชื่อภารกิจ เช่น ทั้งทีมสัมภาษณ์รวม 30 คน" className="border border-zinc-300 rounded-lg px-2 py-1.5 text-sm" />
+            <input
+              name="title"
+              required
+              aria-label="ชื่อภารกิจ"
+              placeholder="ชื่อภารกิจ เช่น ทั้งทีมสัมภาษณ์รวม 30 คน"
+              className="border border-zinc-300 rounded-lg px-2 py-1.5 text-sm"
+            />
             <div className="grid grid-cols-3 gap-2">
-              <select name="metric" className="border border-zinc-300 rounded-lg px-2 py-1.5 text-sm">
+              <select name="metric" aria-label="ตัวชี้วัด" className="border border-zinc-300 rounded-lg px-2 py-1.5 text-sm">
                 {TEAM_CHALLENGE_METRICS.map((m) => (
                   <option key={m} value={m}>
                     {m}
                   </option>
                 ))}
               </select>
-              <input name="target" type="number" min={1} required placeholder="เป้าหมาย" className="border border-zinc-300 rounded-lg px-2 py-1.5 text-sm" />
-              <input name="xpReward" type="number" min={1} required placeholder="XP รางวัล" className="border border-zinc-300 rounded-lg px-2 py-1.5 text-sm" />
+              <input name="target" type="number" min={1} required aria-label="เป้าหมาย" placeholder="เป้าหมาย" className="border border-zinc-300 rounded-lg px-2 py-1.5 text-sm" />
+              <input name="xpReward" type="number" min={1} required aria-label="XP รางวัล" placeholder="XP รางวัล" className="border border-zinc-300 rounded-lg px-2 py-1.5 text-sm" />
             </div>
             <div className="grid grid-cols-2 gap-2">
               <label className="text-xs text-zinc-500 flex flex-col gap-1">
@@ -178,12 +185,7 @@ export default async function TeamPage() {
                 </div>
                 <details className="mt-2">
                   <summary className="cursor-pointer text-sm text-[#b84c00]">ส่ง Kudos</summary>
-                  <form action={sendKudosAction.bind(null, u.id)} className="flex gap-2 mt-2">
-                    <input name="message" placeholder="ข้อความให้กำลังใจสั้น ๆ" className="flex-1 border border-zinc-300 rounded-lg px-2 py-1 text-sm" />
-                    <button type="submit" className="px-3 py-1.5 rounded-full bg-[#ff6b00] text-[#111111] text-sm font-medium">
-                      ส่ง
-                    </button>
-                  </form>
+                  <KudosForm toUserId={u.id} toName={u.name} />
                 </details>
               </li>
             ))}
@@ -211,7 +213,7 @@ export default async function TeamPage() {
                   <details className="flex-1">
                     <summary className="cursor-pointer text-sm text-amber-700">ขอพัฒนาเพิ่ม</summary>
                     <form action={needsDevGateAction.bind(null, r.id)} className="flex gap-2 mt-2">
-                      <input name="comment" placeholder="คำแนะนำสั้น ๆ" className="flex-1 border border-zinc-300 rounded-lg px-2 py-1 text-sm" />
+                      <input name="comment" aria-label="คำแนะนำสำหรับ Gate นี้" placeholder="คำแนะนำสั้น ๆ" className="flex-1 border border-zinc-300 rounded-lg px-2 py-1 text-sm" />
                       <button type="submit" className="px-3 py-1.5 rounded-full border border-amber-400 text-amber-700 text-sm font-medium">
                         ส่ง
                       </button>

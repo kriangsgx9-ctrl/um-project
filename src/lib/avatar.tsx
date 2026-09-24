@@ -37,11 +37,22 @@ function hairShape(hair: HairStyle) {
   return <path d="M14 28c-1-13 7-22 18-22s19 9 18 22c-2-9-9-14-18-14s-16 5-18 14z" fill="#2b2117" />;
 }
 
-/** phasesPassed drives the small progress-dot row beneath the avatar. */
-export function renderAvatarSvg(config: AvatarConfig, phasesPassed: number = 0, size = 64) {
+/**
+ * phasesPassed drives the small progress-dot row beneath the avatar. Every
+ * call site already shows the person's name as adjacent text, so this is
+ * `aria-hidden` by default to avoid a redundant "avatar image" announcement
+ * per row (e.g. the Guild Dashboard's list of cards) — pass `label` for the
+ * rare standalone case where no adjacent name exists.
+ */
+export function renderAvatarSvg(config: AvatarConfig, phasesPassed: number = 0, size = 64, label?: string) {
   const skin = skinHex(config.skin);
   return (
-    <svg viewBox="0 0 64 76" width={size} height={(size * 76) / 64} role="img" aria-label="avatar">
+    <svg
+      viewBox="0 0 64 76"
+      width={size}
+      height={(size * 76) / 64}
+      {...(label ? { role: "img", "aria-label": label } : { "aria-hidden": true })}
+    >
       <circle cx="32" cy="26" r="18" fill={skin} />
       {hairShape(config.hair)}
       <path d="M10 76c2-16 10-24 22-24s20 8 22 24z" fill={config.shirtColor} />

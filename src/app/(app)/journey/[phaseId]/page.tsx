@@ -5,6 +5,7 @@ import { loadStoreForUser } from "@/lib/data/load-store";
 import { DONE, userById } from "@/lib/domain/actions";
 import { gateRequirements, gateStatus } from "@/lib/domain/gate";
 import { VictoryOverlay } from "@/components/VictoryOverlay";
+import { DEFAULT_AVATAR_CONFIG, type AvatarConfig } from "@/lib/avatar";
 import { acknowledgeVictoryAction, requestGateReviewAction } from "./actions";
 
 export default async function ZoneDetailPage({ params }: { params: Promise<{ phaseId: string }> }) {
@@ -32,7 +33,15 @@ export default async function ZoneDetailPage({ params }: { params: Promise<{ pha
 
   return (
     <div className="flex flex-col gap-6 max-w-xl">
-      {unseenVictory && !dbUser.professionalMode && <VictoryOverlay gateReviewId={unseenVictory.id} gateName={phase.gate.name} />}
+      {unseenVictory && !dbUser.professionalMode && (
+        <VictoryOverlay
+          gateReviewId={unseenVictory.id}
+          gateName={phase.gate.name}
+          name={user.name}
+          avatarConfig={(dbUser.avatarConfig as AvatarConfig | null) ?? DEFAULT_AVATAR_CONFIG}
+          phasesPassed={user.currentPhase - 1}
+        />
+      )}
       {unseenVictory && dbUser.professionalMode && (
         <div className="rounded-2xl border border-green-200 bg-green-50 p-4 text-sm text-green-800 flex items-center justify-between">
           <span>ผ่าน {phase.gate.name} แล้ว</span>

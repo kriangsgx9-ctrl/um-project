@@ -159,11 +159,21 @@ export function QuickLogButton({ candidates, evidenceActions }: { candidates: Ca
                   <div key={metric} className="flex items-center justify-between">
                     <span className="text-sm">{KPI_LABEL[metric]}</span>
                     <div className="flex items-center gap-3">
-                      <button onClick={() => setKpiCounts((c) => ({ ...c, [metric]: Math.max(0, c[metric] - 1) }))} className="w-8 h-8 rounded-full border border-zinc-300">
+                      <button
+                        onClick={() => setKpiCounts((c) => ({ ...c, [metric]: Math.max(0, c[metric] - 1) }))}
+                        aria-label={`ลด ${KPI_LABEL[metric]}`}
+                        className="w-8 h-8 rounded-full border border-zinc-300"
+                      >
                         −
                       </button>
-                      <span className="w-6 text-center tabular-nums">{kpiCounts[metric]}</span>
-                      <button onClick={() => setKpiCounts((c) => ({ ...c, [metric]: c[metric] + 1 }))} className="w-8 h-8 rounded-full border border-zinc-300">
+                      <span className="w-6 text-center tabular-nums" aria-live="polite">
+                        {kpiCounts[metric]}
+                      </span>
+                      <button
+                        onClick={() => setKpiCounts((c) => ({ ...c, [metric]: c[metric] + 1 }))}
+                        aria-label={`เพิ่ม ${KPI_LABEL[metric]}`}
+                        className="w-8 h-8 rounded-full border border-zinc-300"
+                      >
                         +
                       </button>
                     </div>
@@ -196,6 +206,7 @@ export function QuickLogButton({ candidates, evidenceActions }: { candidates: Ca
                 <textarea
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
+                  aria-label="สรุปผลลัพธ์"
                   placeholder="สรุปผลลัพธ์สั้น ๆ"
                   rows={3}
                   className="border border-zinc-300 rounded-lg p-2 text-sm"
@@ -213,15 +224,28 @@ export function QuickLogButton({ candidates, evidenceActions }: { candidates: Ca
             {tab === "coaching" && (
               <div className="flex flex-col gap-3">
                 <h3 className="font-semibold">บันทึกโค้ชชิ่ง/1-on-1</h3>
-                <input value={topic} onChange={(e) => setTopic(e.target.value)} placeholder="หัวข้อ" className="border border-zinc-300 rounded-lg p-2 text-sm" />
+                <input
+                  value={topic}
+                  onChange={(e) => setTopic(e.target.value)}
+                  aria-label="หัวข้อ"
+                  placeholder="หัวข้อ"
+                  className="border border-zinc-300 rounded-lg p-2 text-sm"
+                />
                 <textarea
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
+                  aria-label="สิ่งที่คุยกัน / action plan"
                   placeholder="สิ่งที่คุยกัน / action plan"
                   rows={3}
                   className="border border-zinc-300 rounded-lg p-2 text-sm"
                 />
-                <input type="date" value={followUp} onChange={(e) => setFollowUp(e.target.value)} className="border border-zinc-300 rounded-lg p-2 text-sm" />
+                <input
+                  type="date"
+                  value={followUp}
+                  onChange={(e) => setFollowUp(e.target.value)}
+                  aria-label="วันที่ติดตามผล"
+                  className="border border-zinc-300 rounded-lg p-2 text-sm"
+                />
                 <button
                   disabled={pending || !topic}
                   onClick={saveCoaching}
