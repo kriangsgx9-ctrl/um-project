@@ -429,6 +429,9 @@ model DailyMission {
   doneAt   DateTime?
   link     String?
 
+  // One mission per kind per user per day — makes generation idempotent
+  // (createMany + skipDuplicates) under concurrent requests.
+  @@unique([userId, date, kind])
   @@index([userId, date])
 }
 

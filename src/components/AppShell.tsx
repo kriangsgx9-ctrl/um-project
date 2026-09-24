@@ -1,6 +1,7 @@
-// Minimal AppShell/Sidebar/Topbar (V1 spec §29) — routing skeleton only.
-// Full visual design (mirroring the validated prototype) lands in Sprint C.
+// Minimal AppShell/Sidebar/Topbar (V1 spec §29) + mobile bottom nav (V2 §4.3).
+// Full visual design (mirroring the validated prototype) lands in a later sprint.
 import Link from "next/link";
+import { QuickLogButton } from "@/components/QuickLog/QuickLogButton";
 
 const NAV = [
   { href: "/dashboard", label: "Dashboard" },
@@ -14,18 +15,40 @@ const NAV = [
   { href: "/team", label: "Team" },
 ];
 
+// V2 §4.3: หน้าแรก · แผนที่ · [+ Quick Log, rendered separately as a floating
+// button so it can sit visually centered above this bar] · ทีม · ฉัน
+const MOBILE_NAV = [
+  { href: "/dashboard", label: "หน้าแรก" },
+  { href: "/journey", label: "แผนที่" },
+  { href: "/team", label: "ทีม" },
+  { href: "/profile", label: "ฉัน" },
+];
+
+interface QuickLogCandidate {
+  id: string;
+  name: string;
+}
+interface QuickLogEvidenceAction {
+  actionId: string;
+  title: string;
+}
+
 export function AppShell({
   children,
   userName,
   role,
+  quickLogCandidates,
+  quickLogEvidenceActions,
 }: {
   children: React.ReactNode;
   userName: string;
   role: string;
+  quickLogCandidates: QuickLogCandidate[];
+  quickLogEvidenceActions: QuickLogEvidenceAction[];
 }) {
   return (
-    <div className="grid grid-cols-[220px_1fr] min-h-screen">
-      <aside className="bg-[#111111] text-zinc-200 p-4 flex flex-col gap-1">
+    <div className="md:grid md:grid-cols-[220px_1fr] min-h-screen">
+      <aside className="hidden md:flex bg-[#111111] text-zinc-200 p-4 flex-col gap-1">
         <div className="font-extrabold text-sm tracking-wide mb-6 px-2">PRIME UM ASCEND</div>
         <nav className="flex flex-col gap-1">
           {NAV.map((item) => (
@@ -39,7 +62,23 @@ export function AppShell({
           <div>{role}</div>
         </div>
       </aside>
-      <main className="p-8">{children}</main>
+
+      <main className="p-4 md:p-8 pb-32 md:pb-8">{children}</main>
+
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-30 grid grid-cols-4 bg-white border-t border-zinc-200">
+        {MOBILE_NAV.slice(0, 2).map((item) => (
+          <Link key={item.href} href={item.href} className="flex flex-col items-center justify-center py-2 text-[11px] font-medium text-zinc-500">
+            {item.label}
+          </Link>
+        ))}
+        {MOBILE_NAV.slice(2).map((item) => (
+          <Link key={item.href} href={item.href} className="flex flex-col items-center justify-center py-2 text-[11px] font-medium text-zinc-500">
+            {item.label}
+          </Link>
+        ))}
+      </nav>
+
+      <QuickLogButton candidates={quickLogCandidates} evidenceActions={quickLogEvidenceActions} />
     </div>
   );
 }
