@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { UsersRound } from "lucide-react";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getWeeklyLeaderboard } from "@/lib/data/leaderboard";
@@ -12,6 +13,7 @@ import { lastActivity, risks, riskLevel } from "@/lib/domain/risk";
 import { readiness } from "@/lib/domain/readiness";
 import { DEFAULT_AVATAR_CONFIG, renderAvatarSvg, type AvatarConfig } from "@/lib/avatar";
 import { KudosForm } from "@/components/KudosForm";
+import { PageHeader } from "@/components/PageHeader";
 import { approveGateAction, createTeamExpeditionAction, needsDevGateAction } from "./actions";
 
 // V2 §6: the Guild/Command-Center view must never show game elements
@@ -100,7 +102,7 @@ export default async function TeamPage() {
 
   return (
     <div className="flex flex-col gap-6 max-w-2xl">
-      <h1 className="text-2xl font-bold">Team</h1>
+      <PageHeader icon={UsersRound}>Team</PageHeader>
 
       {isGuildLeader && (
         <div className="rounded-2xl border border-zinc-200 p-4 shadow-card">

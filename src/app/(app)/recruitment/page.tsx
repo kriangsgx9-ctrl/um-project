@@ -1,9 +1,11 @@
 import { redirect } from "next/navigation";
+import { UserPlus, Users } from "lucide-react";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { loadStoreForUser } from "@/lib/data/load-store";
 import { funnelCounts, STAGES } from "@/lib/domain/funnel";
 import { CandidateCard } from "@/components/Recruitment/CandidateCard";
+import { PageHeader } from "@/components/PageHeader";
 import { addCandidateAction } from "./actions";
 
 export default async function RecruitmentPage() {
@@ -19,7 +21,7 @@ export default async function RecruitmentPage() {
 
   return (
     <div className="flex flex-col gap-6 max-w-2xl">
-      <h1 className="text-2xl font-bold">Recruitment</h1>
+      <PageHeader icon={Users}>Recruitment</PageHeader>
 
       <div className="rounded-2xl border border-zinc-200 p-4 shadow-card">
         <h2 className="font-semibold mb-3">Funnel</h2>
@@ -43,7 +45,10 @@ export default async function RecruitmentPage() {
       </div>
 
       <div className="rounded-2xl border border-zinc-200 p-4 shadow-card">
-        <h2 className="font-semibold mb-3">เพิ่มผู้สมัคร</h2>
+        <h2 className="font-semibold mb-3 flex items-center gap-2">
+          <UserPlus size={16} className="text-[#b84c00]" />
+          เพิ่มผู้สมัคร
+        </h2>
         <form action={addCandidateAction} className="grid grid-cols-1 sm:grid-cols-3 gap-2">
           <input name="name" required aria-label="ชื่อผู้สมัคร" placeholder="ชื่อผู้สมัคร" className="border border-zinc-300 rounded-lg px-2 py-1.5 text-sm" />
           <input name="phone" aria-label="เบอร์ติดต่อ" placeholder="เบอร์ติดต่อ" className="border border-zinc-300 rounded-lg px-2 py-1.5 text-sm" />
@@ -55,7 +60,10 @@ export default async function RecruitmentPage() {
       </div>
 
       <div className="rounded-2xl border border-zinc-200 p-4 shadow-card">
-        <h2 className="font-semibold mb-3">ผู้สมัครทั้งหมด ({candidates.length})</h2>
+        <h2 className="font-semibold mb-3 flex items-center gap-2">
+          <Users size={16} className="text-[#b84c00]" />
+          ผู้สมัครทั้งหมด ({candidates.length})
+        </h2>
         {candidates.length === 0 ? (
           <p className="text-sm text-zinc-500">ยังไม่มีผู้สมัครในระบบ</p>
         ) : (

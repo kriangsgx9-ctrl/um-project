@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { AlertTriangle, CheckCircle2, Circle, Clock, Eye, Trophy, type LucideIcon } from "lucide-react";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { loadStoreForUser } from "@/lib/data/load-store";
@@ -7,6 +8,7 @@ import { avg, clamp, lastMonths, pct } from "@/lib/domain/dates";
 import { kpiAch, kpiVal } from "@/lib/domain/kpi";
 import { funnelCounts, STAGES } from "@/lib/domain/funnel";
 import { risks } from "@/lib/domain/risk";
+import { PageHeader } from "@/components/PageHeader";
 
 type ItemStatus = "not_started" | "in_progress" | "needs_development" | "ready_for_review" | "verified";
 
@@ -24,6 +26,14 @@ const STATUS_STYLE: Record<ItemStatus, string> = {
   needs_development: "bg-red-50 border-red-200 text-red-700",
   ready_for_review: "bg-amber-50 border-amber-200 text-amber-700",
   verified: "bg-green-50 border-green-200 text-green-700",
+};
+
+const STATUS_ICON: Record<ItemStatus, LucideIcon> = {
+  not_started: Circle,
+  in_progress: Clock,
+  needs_development: AlertTriangle,
+  ready_for_review: Eye,
+  verified: CheckCircle2,
 };
 
 function deriveStatus(pctDone: number, hasRisk: boolean, isReviewed: boolean): ItemStatus {
@@ -106,17 +116,21 @@ export default async function PromotionPage() {
 
   return (
     <div className="flex flex-col gap-4 max-w-2xl">
-      <h1 className="text-2xl font-bold">Promotion Readiness</h1>
+      <PageHeader icon={Trophy}>Promotion Readiness</PageHeader>
       <p className="text-xs text-zinc-400 -mt-2">สัญญาณความพร้อมภายในจากข้อมูลจริงในระบบ ไม่ใช่ผลตัดสินการเลื่อนตำแหน่งอัตโนมัติ — การเลื่อนตำแหน่งจริงต้องผ่านการรีวิวจากโค้ชและ AL</p>
 
-      <ul className="flex flex-col gap-3">
+      <div className="rounded-2xl border border-zinc-200 shadow-card divide-y divide-zinc-100 overflow-hidden">
         {items.map((item) => {
           const status = deriveStatus(item.pctDone, item.hasRisk, !!item.reviewer);
+          const StatusIcon = STATUS_ICON[status];
           return (
-            <li key={item.key} className="rounded-xl border border-zinc-200 p-3 flex flex-col gap-1.5">
+            <div key={item.key} className="p-4 flex flex-col gap-1.5">
               <div className="flex items-center justify-between gap-2">
                 <span className="text-sm font-medium">{item.label}</span>
-                <span className={`text-[11px] font-medium px-2 py-0.5 rounded-full border flex-none ${STATUS_STYLE[status]}`}>{STATUS_LABEL[status]}</span>
+                <span className={`flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full border flex-none ${STATUS_STYLE[status]}`}>
+                  <StatusIcon size={12} />
+                  {STATUS_LABEL[status]}
+                </span>
               </div>
               <div className="h-2 rounded-full bg-zinc-200 overflow-hidden">
                 <div className="h-full bg-[#ff6b00]" style={{ width: `${Math.min(100, Math.max(0, item.pctDone))}%` }} />
@@ -126,10 +140,10 @@ export default async function PromotionPage() {
                 {item.reviewer && ` · รีวิวโดย ${item.reviewer}${item.date ? ` (${item.date})` : ""}`}
               </div>
               {item.comment && <div className="text-xs text-zinc-500">{item.comment}</div>}
-            </li>
+            </div>
           );
         })}
-      </ul>
+      </div>
     </div>
   );
 }

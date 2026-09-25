@@ -36,7 +36,7 @@ export function CandidateCard({ candidate }: { candidate: CandidateCardData }) {
   }
 
   return (
-    <li className={`rounded-xl border p-3 flex flex-col gap-2 ${candidate.status === "lost" ? "border-zinc-200 opacity-60" : "border-zinc-200"}`}>
+    <li className={`rounded-xl border p-3 flex flex-col gap-2 transition-shadow ${candidate.status === "lost" ? "border-zinc-200 opacity-60" : "border-zinc-200 hover:shadow-card"}`}>
       <div className="flex items-start justify-between gap-2">
         <div>
           <div className="text-sm font-medium">{candidate.name}</div>

@@ -5,7 +5,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { FileText } from "lucide-react";
+import { CheckCircle2, Circle, FileText, RotateCcw, Send, type LucideIcon } from "lucide-react";
 
 export interface EvidenceRow {
   id: string;
@@ -33,6 +33,13 @@ const STATUS_STYLE: Record<EvidenceRow["status"], string> = {
   submitted: "bg-amber-50 border-amber-200 text-amber-700",
   verified: "bg-green-50 border-green-200 text-green-700",
   revision: "bg-red-50 border-red-200 text-red-700",
+};
+
+const STATUS_ICON: Record<EvidenceRow["status"], LucideIcon> = {
+  draft: Circle,
+  submitted: Send,
+  verified: CheckCircle2,
+  revision: RotateCcw,
 };
 
 export function EvidenceList({ rows }: { rows: EvidenceRow[] }) {
@@ -67,8 +74,10 @@ export function EvidenceList({ rows }: { rows: EvidenceRow[] }) {
         <p className="text-sm text-zinc-500">ยังไม่มีหลักฐานในตัวกรองนี้</p>
       ) : (
         <ul className="flex flex-col gap-3">
-          {filtered.map((r) => (
-            <li key={r.id} className="rounded-xl border border-zinc-200 p-3 flex flex-col gap-1.5">
+          {filtered.map((r) => {
+            const StatusIcon = STATUS_ICON[r.status];
+            return (
+            <li key={r.id} className="rounded-xl border border-zinc-200 p-3 shadow-card flex flex-col gap-1.5">
               <div className="flex items-start justify-between gap-2">
                 <div>
                   <Link href={`/actions/${r.actionId}`} className="text-sm font-medium hover:underline">
@@ -78,7 +87,10 @@ export function EvidenceList({ rows }: { rows: EvidenceRow[] }) {
                     {r.phaseKey} · {r.category} · {r.date}
                   </div>
                 </div>
-                <span className={`text-[11px] font-medium px-2 py-0.5 rounded-full border flex-none ${STATUS_STYLE[r.status]}`}>{STATUS_LABEL[r.status]}</span>
+                <span className={`flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full border flex-none ${STATUS_STYLE[r.status]}`}>
+                  <StatusIcon size={12} />
+                  {STATUS_LABEL[r.status]}
+                </span>
               </div>
               {r.description && <p className="text-sm text-zinc-600">{r.description}</p>}
               {r.files.length > 0 && (
@@ -104,7 +116,8 @@ export function EvidenceList({ rows }: { rows: EvidenceRow[] }) {
                 </div>
               )}
             </li>
-          ))}
+            );
+          })}
         </ul>
       )}
     </div>

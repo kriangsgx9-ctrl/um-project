@@ -5,6 +5,7 @@
 // covered by the tabs, which partition on exactly that dimension.
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import { CheckCircle2, Circle, Eye, PenLine, RotateCcw, type LucideIcon } from "lucide-react";
 
 export interface ActionRow {
   id: string;
@@ -38,6 +39,26 @@ const STATUS_LABEL: Record<string, string> = {
   verified: "ยืนยันแล้ว",
   needs_revision: "ต้องแก้ไข",
   completed: "เสร็จแล้ว",
+};
+
+const STATUS_ICON: Record<string, LucideIcon> = {
+  not_started: Circle,
+  in_progress: PenLine,
+  submitted: Eye,
+  waiting_review: Eye,
+  verified: CheckCircle2,
+  needs_revision: RotateCcw,
+  completed: CheckCircle2,
+};
+
+const STATUS_ICON_STYLE: Record<string, string> = {
+  not_started: "text-zinc-400",
+  in_progress: "text-blue-600",
+  submitted: "text-amber-600",
+  waiting_review: "text-amber-600",
+  verified: "text-green-600",
+  needs_revision: "text-red-600",
+  completed: "text-green-600",
 };
 
 export function ActionsList({ rows }: { rows: ActionRow[] }) {
@@ -83,8 +104,8 @@ export function ActionsList({ rows }: { rows: ActionRow[] }) {
             role="tab"
             aria-selected={tab === t}
             onClick={() => setTab(t)}
-            className={`px-3 py-1.5 rounded-full text-sm font-medium border whitespace-nowrap ${
-              tab === t ? "bg-[#111111] text-white border-[#111111]" : "border-zinc-300 text-zinc-600"
+            className={`px-3 py-1.5 rounded-full text-sm font-medium border whitespace-nowrap transition-colors ${
+              tab === t ? "bg-[#ff6b00] text-[#111111] border-[#ff6b00]" : "border-zinc-300 text-zinc-600 hover:border-zinc-400"
             }`}
           >
             {TAB_LABEL[t]} ({counts[t]})
@@ -131,23 +152,30 @@ export function ActionsList({ rows }: { rows: ActionRow[] }) {
         <p className="text-sm text-zinc-500">ไม่มี Action ในตัวกรองนี้</p>
       ) : (
         <ul className="flex flex-col gap-2">
-          {filtered.map((r) => (
-            <li key={r.id}>
-              <Link href={`/actions/${r.id}`} className="rounded-xl border border-zinc-200 p-3 flex items-center justify-between gap-3 hover:border-zinc-300 block">
-                <div className="min-w-0">
-                  <div className="text-sm font-medium truncate">{r.title}</div>
-                  <div className="text-xs text-zinc-500 mt-0.5">
-                    {r.phaseKey} · {r.category} · กำหนดส่ง {r.due}
-                    {r.overdue && <span className="text-red-600 font-medium"> · เลยกำหนด</span>}
+          {filtered.map((r) => {
+            const StatusIcon = STATUS_ICON[r.status] ?? Circle;
+            return (
+              <li key={r.id}>
+                <Link
+                  href={`/actions/${r.id}`}
+                  className="rounded-xl border border-zinc-200 p-3 flex items-center gap-3 hover:border-zinc-300 hover:shadow-card transition-shadow block"
+                >
+                  <StatusIcon size={18} className={`flex-none ${STATUS_ICON_STYLE[r.status] ?? "text-zinc-400"}`} />
+                  <div className="min-w-0 flex-1">
+                    <div className="text-sm font-medium truncate">{r.title}</div>
+                    <div className="text-xs text-zinc-500 mt-0.5">
+                      {r.phaseKey} · {r.category} · กำหนดส่ง {r.due}
+                      {r.overdue && <span className="text-red-600 font-medium"> · เลยกำหนด</span>}
+                    </div>
                   </div>
-                </div>
-                <div className="flex flex-col items-end gap-1 flex-none">
-                  <span className={`text-[11px] font-medium px-2 py-0.5 rounded-full border ${PRIORITY_STYLE[r.priority]}`}>{r.priority}</span>
-                  <span className="text-[11px] text-zinc-500">{STATUS_LABEL[r.status] ?? r.status}</span>
-                </div>
-              </Link>
-            </li>
-          ))}
+                  <div className="flex flex-col items-end gap-1 flex-none">
+                    <span className={`text-[11px] font-medium px-2 py-0.5 rounded-full border ${PRIORITY_STYLE[r.priority]}`}>{r.priority}</span>
+                    <span className="text-[11px] text-zinc-500">{STATUS_LABEL[r.status] ?? r.status}</span>
+                  </div>
+                </Link>
+              </li>
+            );
+          })}
         </ul>
       )}
     </div>

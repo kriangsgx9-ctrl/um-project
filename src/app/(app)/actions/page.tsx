@@ -1,10 +1,12 @@
 import { redirect } from "next/navigation";
+import { ClipboardList } from "lucide-react";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { loadStoreForUser } from "@/lib/data/load-store";
 import { DONE, actionsFor, dueDate, isOverdue, phaseById, ua, userById } from "@/lib/domain/actions";
 import { diffDays, today } from "@/lib/domain/dates";
 import { ActionsList, type ActionRow } from "@/components/Actions/ActionsList";
+import { PageHeader } from "@/components/PageHeader";
 
 export default async function ActionsPage() {
   const session = await auth();
@@ -36,7 +38,7 @@ export default async function ActionsPage() {
 
   return (
     <div className="flex flex-col gap-4 max-w-3xl">
-      <h1 className="text-2xl font-bold">Actions</h1>
+      <PageHeader icon={ClipboardList}>Actions</PageHeader>
       <ActionsList rows={rows} />
     </div>
   );

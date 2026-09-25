@@ -1,10 +1,12 @@
 import { redirect } from "next/navigation";
+import { CheckCircle2, Circle, Lock, Map } from "lucide-react";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { loadStoreForUser } from "@/lib/data/load-store";
 import { phaseProgress, userById } from "@/lib/domain/actions";
 import { WorldMap } from "@/components/WorldMap";
 import { DEFAULT_AVATAR_CONFIG, type AvatarConfig } from "@/lib/avatar";
+import { PageHeader } from "@/components/PageHeader";
 
 export default async function JourneyPage() {
   const session = await auth();
@@ -22,7 +24,7 @@ export default async function JourneyPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="text-2xl font-bold">{dbUser.professionalMode ? "Journey" : "My Journey"}</h1>
+      <PageHeader icon={Map}>{dbUser.professionalMode ? "Journey" : "My Journey"}</PageHeader>
       {!dbUser.professionalMode && (
         <WorldMap
           phases={store.phases}
@@ -33,18 +35,26 @@ export default async function JourneyPage() {
         />
       )}
       <ul className="flex flex-col gap-2">
-        {store.phases.map((p) => (
-          <li key={p.id}>
-            <a href={`/journey/${p.id}`} className="flex items-center justify-between rounded-xl border border-zinc-200 px-4 py-3 text-sm">
-              <span className="font-medium">
-                Phase {p.no} — {p.key}
-              </span>
-              <span className="text-zinc-400">
-                {p.no < user.currentPhase ? "ผ่านแล้ว" : p.no === user.currentPhase ? "กำลังทำ" : "ยังไม่เปิด"}
-              </span>
-            </a>
-          </li>
-        ))}
+        {store.phases.map((p) => {
+          const StatusIcon = p.no < user.currentPhase ? CheckCircle2 : p.no === user.currentPhase ? Circle : Lock;
+          const iconStyle = p.no < user.currentPhase ? "text-green-600" : p.no === user.currentPhase ? "text-[#ff6b00]" : "text-zinc-300";
+          return (
+            <li key={p.id}>
+              <a
+                href={`/journey/${p.id}`}
+                className="flex items-center gap-3 rounded-xl border border-zinc-200 px-4 py-3 text-sm hover:shadow-card transition-shadow"
+              >
+                <StatusIcon size={16} className={`flex-none ${iconStyle}`} />
+                <span className="font-medium flex-1">
+                  Phase {p.no} — {p.key}
+                </span>
+                <span className="text-zinc-400">
+                  {p.no < user.currentPhase ? "ผ่านแล้ว" : p.no === user.currentPhase ? "กำลังทำ" : "ยังไม่เปิด"}
+                </span>
+              </a>
+            </li>
+          );
+        })}
       </ul>
     </div>
   );

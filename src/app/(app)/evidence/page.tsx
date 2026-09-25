@@ -1,8 +1,10 @@
 import { redirect } from "next/navigation";
+import { FileCheck2 } from "lucide-react";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import type { StoredEvidenceFile } from "@/lib/storage/evidence-files";
 import { EvidenceList, type EvidenceRow } from "@/components/Evidence/EvidenceList";
+import { PageHeader } from "@/components/PageHeader";
 
 export default async function EvidencePage() {
   const session = await auth();
@@ -35,7 +37,7 @@ export default async function EvidencePage() {
 
   return (
     <div className="flex flex-col gap-4 max-w-2xl">
-      <h1 className="text-2xl font-bold">Evidence</h1>
+      <PageHeader icon={FileCheck2}>Evidence</PageHeader>
       <p className="text-xs text-zinc-400 -mt-2">หลักฐานทั้งหมดที่คุณเคยส่งในโปรแกรม ({rows.length} รายการ)</p>
       <EvidenceList rows={rows} />
     </div>

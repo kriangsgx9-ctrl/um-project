@@ -1,6 +1,8 @@
 import { redirect } from "next/navigation";
+import { ClipboardList, GraduationCap, Handshake, Lightbulb, Target } from "lucide-react";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { PageHeader } from "@/components/PageHeader";
 
 const CATEGORY_LABEL: Record<string, string> = {
   production: "Production",
@@ -38,18 +40,24 @@ export default async function DevelopmentPage() {
 
   return (
     <div className="flex flex-col gap-6 max-w-2xl">
-      <h1 className="text-2xl font-bold">Development</h1>
+      <PageHeader icon={GraduationCap}>Development</PageHeader>
 
       {latestFeedback && (
-        <div className="rounded-2xl border border-[#ffb800] bg-[#fff8e6] p-4">
-          <h2 className="font-semibold mb-1">คำแนะนำล่าสุดจากโค้ช</h2>
+        <div className="rounded-2xl border border-[#ffb800] bg-[#fff8e6] p-4 shadow-card">
+          <h2 className="font-semibold mb-1 flex items-center gap-2">
+            <Lightbulb size={16} className="text-[#8a6400]" />
+            คำแนะนำล่าสุดจากโค้ช
+          </h2>
           <p className="text-sm text-zinc-700">{latestFeedback.feedback}</p>
           <p className="text-xs text-zinc-400 mt-1">{latestFeedback.date.toISOString().slice(0, 10)} — {latestFeedback.topic}</p>
         </div>
       )}
 
       <div className="rounded-2xl border border-zinc-200 p-4 shadow-card">
-        <h2 className="font-semibold mb-3">Competency Matrix</h2>
+        <h2 className="font-semibold mb-3 flex items-center gap-2">
+          <Target size={16} className="text-[#b84c00]" />
+          Competency Matrix
+        </h2>
         {competencies.length === 0 ? (
           <p className="text-sm text-zinc-500">ยังไม่มีข้อมูล Competency</p>
         ) : (
@@ -86,7 +94,10 @@ export default async function DevelopmentPage() {
 
       {coachQuests.length > 0 && (
         <div className="rounded-2xl border border-zinc-200 p-4 shadow-card">
-          <h2 className="font-semibold mb-3">Development Plan (Coach Quest)</h2>
+          <h2 className="font-semibold mb-3 flex items-center gap-2">
+            <ClipboardList size={16} className="text-[#b84c00]" />
+            Development Plan (Coach Quest)
+          </h2>
           <ul className="flex flex-col gap-2">
             {coachQuests.map((q) => (
               <li key={q.id} className="rounded-xl border border-zinc-200 p-3 text-sm">
@@ -100,7 +111,10 @@ export default async function DevelopmentPage() {
       )}
 
       <div className="rounded-2xl border border-zinc-200 p-4 shadow-card">
-        <h2 className="font-semibold mb-3">Coaching Sessions ({coaching.length})</h2>
+        <h2 className="font-semibold mb-3 flex items-center gap-2">
+          <Handshake size={16} className="text-[#b84c00]" />
+          Coaching Sessions ({coaching.length})
+        </h2>
         {coaching.length === 0 ? (
           <p className="text-sm text-zinc-500">ยังไม่มีบันทึกโค้ชชิ่ง</p>
         ) : (

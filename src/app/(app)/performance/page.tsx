@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { ClipboardList, GraduationCap, TrendingUp, Users, UsersRound, type LucideIcon } from "lucide-react";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { loadStoreForUser } from "@/lib/data/load-store";
@@ -7,6 +8,7 @@ import { fmtMoney, lastMonths } from "@/lib/domain/dates";
 import { kpiTarget, kpiVal } from "@/lib/domain/kpi";
 import { funnelCounts, STAGES } from "@/lib/domain/funnel";
 import { KpiTrendChart, type KpiTrendPoint } from "@/components/Performance/KpiTrendChart";
+import { PageHeader } from "@/components/PageHeader";
 
 function StatCard({ label, value, sub }: { label: string; value: string; sub?: string }) {
   return (
@@ -23,6 +25,17 @@ function ProgressBar({ pct }: { pct: number }) {
     <div className="h-2 rounded-full bg-zinc-200 overflow-hidden">
       <div className="h-full bg-[#ff6b00]" style={{ width: `${Math.min(100, Math.max(0, pct))}%` }} />
     </div>
+  );
+}
+
+function PillarHeading({ icon: Icon, children }: { icon: LucideIcon; children: React.ReactNode }) {
+  return (
+    <h2 className="font-semibold mb-3 flex items-center gap-2">
+      <span className="w-7 h-7 rounded-lg bg-[#fff1e6] text-[#b84c00] grid place-items-center flex-none">
+        <Icon size={15} />
+      </span>
+      {children}
+    </h2>
   );
 }
 
@@ -56,10 +69,10 @@ export default async function PerformancePage() {
 
   return (
     <div className="flex flex-col gap-6 max-w-2xl">
-      <h1 className="text-2xl font-bold">Performance</h1>
+      <PageHeader icon={TrendingUp}>Performance</PageHeader>
 
       <div className="rounded-2xl border border-zinc-200 p-4 shadow-card">
-        <h2 className="font-semibold mb-3">PRODUCE</h2>
+        <PillarHeading icon={TrendingUp}>PRODUCE</PillarHeading>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
           {produceMetrics.map((m) => {
             const actual = kpiVal(store, userId, currentMonth, m.key);
@@ -71,7 +84,7 @@ export default async function PerformancePage() {
       </div>
 
       <div className="rounded-2xl border border-zinc-200 p-4 shadow-card">
-        <h2 className="font-semibold mb-3">RECRUIT</h2>
+        <PillarHeading icon={Users}>RECRUIT</PillarHeading>
         <div className="grid grid-cols-3 gap-2">
           {STAGES.map((s, i) => (
             <StatCard key={s.k} label={s.th} value={String(funnel[i])} />
@@ -80,7 +93,7 @@ export default async function PerformancePage() {
       </div>
 
       <div className="rounded-2xl border border-zinc-200 p-4 shadow-card">
-        <h2 className="font-semibold mb-3">DEVELOP</h2>
+        <PillarHeading icon={GraduationCap}>DEVELOP</PillarHeading>
         <div className="grid grid-cols-3 gap-2">
           <StatCard label="Coaching Sessions" value={String(coachingCount)} />
           <StatCard label="Training" value={String(training)} />
@@ -90,7 +103,7 @@ export default async function PerformancePage() {
       </div>
 
       <div className="rounded-2xl border border-zinc-200 p-4 shadow-card">
-        <h2 className="font-semibold mb-3">LEAD</h2>
+        <PillarHeading icon={UsersRound}>LEAD</PillarHeading>
         <div className="grid grid-cols-2 gap-2">
           <StatCard label="Team Meetings" value={String(teamMeetings)} sub={`เป้า ${kpiTarget(store, userId, currentMonth, "teamMeetings")}`} />
           <StatCard label="Team Activity" value={String(teamActivity)} sub={`เป้า ${kpiTarget(store, userId, currentMonth, "teamActivity")}`} />
@@ -98,7 +111,7 @@ export default async function PerformancePage() {
       </div>
 
       <div className="rounded-2xl border border-zinc-200 p-4 shadow-card">
-        <h2 className="font-semibold mb-3">MANAGE</h2>
+        <PillarHeading icon={ClipboardList}>MANAGE</PillarHeading>
         <div className="flex items-center justify-between text-sm mb-1">
           <span>Action Completion</span>
           <span className="font-medium tabular-nums">{actionCompletionPct}%</span>

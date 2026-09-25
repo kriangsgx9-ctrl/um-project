@@ -1,9 +1,11 @@
 import { redirect } from "next/navigation";
+import { User } from "lucide-react";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { DEFAULT_AVATAR_CONFIG, type AvatarConfig } from "@/lib/avatar";
 import { AvatarBuilder } from "@/components/AvatarBuilder";
 import { ProfessionalModeToggle } from "@/components/ProfessionalModeToggle";
+import { PageHeader } from "@/components/PageHeader";
 
 export default async function ProfilePage() {
   const session = await auth();
@@ -14,7 +16,7 @@ export default async function ProfilePage() {
 
   return (
     <div className="flex flex-col gap-6 max-w-md">
-      <h1 className="text-2xl font-bold">ฉัน</h1>
+      <PageHeader icon={User}>ฉัน</PageHeader>
       <AvatarBuilder initial={avatarConfig} phasesPassed={user.currentPhase - 1} />
       <div className="rounded-2xl border border-zinc-200 p-4 shadow-card">
         <h2 className="font-semibold mb-1">Professional Mode</h2>
