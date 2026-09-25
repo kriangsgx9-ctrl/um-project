@@ -8,6 +8,9 @@ import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
+  // TEMPORARY diagnostic flag while chasing a production-only login failure —
+  // remove once resolved (verbose auth logs shouldn't stay on long-term).
+  debug: true,
   session: { strategy: "jwt" },
   pages: { signIn: "/login" },
   providers: [
@@ -18,13 +21,22 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const password = credentials?.password;
         if (typeof email !== "string" || typeof password !== "string") return null;
 
-        const user = await prisma.user.findUnique({ where: { email } });
-        if (!user || user.status !== "active") return null;
+        try {
+          const user = await prisma.user.findUnique({ where: { email } });
+          if (!user || user.status !== "active") {
+            console.log("[authorize] no active user for", email, "found:", !!user);
+            return null;
+          }
 
-        const valid = await bcrypt.compare(password, user.passwordHash);
-        if (!valid) return null;
+          const valid = await bcrypt.compare(password, user.passwordHash);
+          console.log("[authorize] bcrypt.compare result for", email, ":", valid);
+          if (!valid) return null;
 
-        return { id: user.id, name: user.name, email: user.email, role: user.role };
+          return { id: user.id, name: user.name, email: user.email, role: user.role };
+        } catch (e) {
+          console.error("[authorize] threw:", e);
+          throw e;
+        }
       },
     }),
   ],
