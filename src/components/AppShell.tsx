@@ -1,28 +1,40 @@
 // Minimal AppShell/Sidebar/Topbar (V1 spec §29) + mobile bottom nav (V2 §4.3).
-// Full visual design (mirroring the validated prototype) lands in a later sprint.
+import {
+  ClipboardList,
+  FileCheck2,
+  GraduationCap,
+  IdCard,
+  LayoutDashboard,
+  Map,
+  Trophy,
+  TrendingUp,
+  User,
+  Users,
+  UsersRound,
+} from "lucide-react";
 import { QuickLogButton } from "@/components/QuickLog/QuickLogButton";
 import { NavLink } from "@/components/NavLink";
 
 const NAV = [
-  { href: "/dashboard", label: "Dashboard" },
-  { href: "/journey", label: "My Journey" },
-  { href: "/actions", label: "Actions" },
-  { href: "/performance", label: "Performance" },
-  { href: "/recruitment", label: "Recruitment" },
-  { href: "/development", label: "Development" },
-  { href: "/evidence", label: "Evidence" },
-  { href: "/promotion", label: "Promotion" },
-  { href: "/team", label: "Team" },
-  { href: "/passport", label: "UM Passport" },
+  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/journey", label: "My Journey", icon: Map },
+  { href: "/actions", label: "Actions", icon: ClipboardList },
+  { href: "/performance", label: "Performance", icon: TrendingUp },
+  { href: "/recruitment", label: "Recruitment", icon: Users },
+  { href: "/development", label: "Development", icon: GraduationCap },
+  { href: "/evidence", label: "Evidence", icon: FileCheck2 },
+  { href: "/promotion", label: "Promotion", icon: Trophy },
+  { href: "/team", label: "Team", icon: UsersRound },
+  { href: "/passport", label: "UM Passport", icon: IdCard },
 ];
 
 // V2 §4.3: หน้าแรก · แผนที่ · [+ Quick Log, rendered separately as a floating
 // button so it can sit visually centered above this bar] · ทีม · ฉัน
 const MOBILE_NAV = [
-  { href: "/dashboard", label: "หน้าแรก" },
-  { href: "/journey", label: "แผนที่" },
-  { href: "/team", label: "ทีม" },
-  { href: "/profile", label: "ฉัน" },
+  { href: "/dashboard", label: "หน้าแรก", icon: LayoutDashboard },
+  { href: "/journey", label: "แผนที่", icon: Map },
+  { href: "/team", label: "ทีม", icon: UsersRound },
+  { href: "/profile", label: "ฉัน", icon: User },
 ];
 
 interface QuickLogCandidate {
@@ -48,28 +60,35 @@ export function AppShell({
   quickLogEvidenceActions: QuickLogEvidenceAction[];
 }) {
   return (
-    <div className="md:grid md:grid-cols-[220px_1fr] min-h-screen">
+    <div className="md:grid md:grid-cols-[248px_1fr] min-h-screen">
       <a href="#main" className="skip-link">
         ข้ามไปยังเนื้อหาหลัก
       </a>
 
-      <aside className="hidden md:flex bg-[#111111] text-zinc-200 p-4 flex-col gap-1">
-        <div className="font-extrabold text-sm tracking-wide mb-6 px-2">PRIME UM ASCEND</div>
-        <nav aria-label="เมนูหลัก" className="flex flex-col gap-1">
+      <aside className="hidden md:flex text-zinc-300 p-4 flex-col gap-1" style={{ background: "var(--ink)" }}>
+        <div className="flex items-center gap-2.5 mb-6 px-2 pt-1">
+          <div className="w-8 h-8 rounded-lg bg-[#ff6b00] text-[#111111] font-black text-sm grid place-items-center flex-none">P</div>
+          <div>
+            <div className="font-extrabold text-sm tracking-wide text-white leading-tight">PRIME UM ASCEND</div>
+            <div className="text-[10px] text-zinc-500 tracking-wide">Agent → Leader → UM</div>
+          </div>
+        </div>
+        <nav aria-label="เมนูหลัก" className="flex flex-col gap-0.5">
           {NAV.map((item) => (
             <NavLink
               key={item.href}
               href={item.href}
-              className="px-3 py-2 rounded-lg text-sm font-medium hover:bg-zinc-800"
-              activeClassName="bg-zinc-800 text-white"
+              className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium text-zinc-400 hover:bg-white/5 hover:text-zinc-100 transition-colors"
+              activeClassName="!bg-[#ff6b00]/15 !text-[#ff8a33]"
             >
+              <item.icon size={17} strokeWidth={2} className="flex-none" />
               {item.label}
             </NavLink>
           ))}
         </nav>
-        <div className="mt-auto text-xs text-zinc-500 px-2 pt-4 border-t border-zinc-800">
-          <div className="text-zinc-300 font-medium">{userName}</div>
-          <div>{role}</div>
+        <div className="mt-auto text-xs text-zinc-500 px-2 pt-4 border-t border-white/10">
+          <div className="text-zinc-200 font-medium">{userName}</div>
+          <div className="capitalize">{role}</div>
         </div>
       </aside>
 
@@ -86,9 +105,10 @@ export function AppShell({
           <NavLink
             key={item.href}
             href={item.href}
-            className="flex flex-col items-center justify-center py-2 text-[11px] font-medium text-zinc-500"
+            className="flex flex-col items-center justify-center gap-0.5 py-2 text-[11px] font-medium text-zinc-500"
             activeClassName="!text-[#ff6b00]"
           >
+            <item.icon size={20} strokeWidth={2} />
             {item.label}
           </NavLink>
         ))}

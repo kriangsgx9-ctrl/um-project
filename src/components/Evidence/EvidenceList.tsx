@@ -5,6 +5,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { FileText } from "lucide-react";
 
 export interface EvidenceRow {
   id: string;
@@ -88,8 +89,9 @@ export function EvidenceList({ rows }: { rows: EvidenceRow[] }) {
                         <Image src={f.url} alt={f.name} width={56} height={56} className="w-14 h-14 object-cover rounded-lg border border-zinc-200" />
                       </a>
                     ) : (
-                      <a key={f.url} href={f.url} target="_blank" rel="noopener noreferrer" className="text-xs underline text-blue-700 px-2 py-1 border border-zinc-200 rounded-lg">
-                        📄 {f.name}
+                      <a key={f.url} href={f.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-xs underline text-blue-700 px-2 py-1 border border-zinc-200 rounded-lg">
+                        <FileText size={13} className="flex-none" />
+                        {f.name}
                       </a>
                     )
                   )}

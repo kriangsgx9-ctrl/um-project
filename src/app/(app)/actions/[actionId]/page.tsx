@@ -34,7 +34,7 @@ export default async function ActionDetailPage({ params }: { params: Promise<{ a
         <h1 className="text-2xl font-bold mt-1">{action.title}</h1>
       </div>
 
-      <div className="rounded-2xl border border-zinc-200 p-4 flex flex-col gap-3">
+      <div className="rounded-2xl border border-zinc-200 p-4 shadow-card flex flex-col gap-3">
         <div>
           <h2 className="font-semibold text-sm mb-1">พันธกิจ</h2>
           <p className="text-sm text-zinc-600">{action.desc}</p>
@@ -96,13 +96,13 @@ export default async function ActionDetailPage({ params }: { params: Promise<{ a
         </dl>
       </div>
 
-      <div className="rounded-2xl border border-zinc-200 p-4">
+      <div className="rounded-2xl border border-zinc-200 p-4 shadow-card">
         <h2 className="font-semibold mb-3">การดำเนินการ</h2>
         <ActionDetailControls actionId={action.id} status={userAction.status} requiresEvidence={action.evidence} />
       </div>
 
       {userAction.history.length > 0 && (
-        <div className="rounded-2xl border border-zinc-200 p-4">
+        <div className="rounded-2xl border border-zinc-200 p-4 shadow-card">
           <h2 className="font-semibold mb-3">ประวัติกิจกรรม</h2>
           <ul className="flex flex-col gap-2 text-sm">
             {[...userAction.history].reverse().map((h, i) => (

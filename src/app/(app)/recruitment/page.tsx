@@ -21,7 +21,7 @@ export default async function RecruitmentPage() {
     <div className="flex flex-col gap-6 max-w-2xl">
       <h1 className="text-2xl font-bold">Recruitment</h1>
 
-      <div className="rounded-2xl border border-zinc-200 p-4">
+      <div className="rounded-2xl border border-zinc-200 p-4 shadow-card">
         <h2 className="font-semibold mb-3">Funnel</h2>
         <div className="flex flex-col gap-1.5">
           {STAGES.map((s, i) => {
@@ -42,7 +42,7 @@ export default async function RecruitmentPage() {
         </div>
       </div>
 
-      <div className="rounded-2xl border border-zinc-200 p-4">
+      <div className="rounded-2xl border border-zinc-200 p-4 shadow-card">
         <h2 className="font-semibold mb-3">เพิ่มผู้สมัคร</h2>
         <form action={addCandidateAction} className="grid grid-cols-1 sm:grid-cols-3 gap-2">
           <input name="name" required aria-label="ชื่อผู้สมัคร" placeholder="ชื่อผู้สมัคร" className="border border-zinc-300 rounded-lg px-2 py-1.5 text-sm" />
@@ -54,7 +54,7 @@ export default async function RecruitmentPage() {
         </form>
       </div>
 
-      <div className="rounded-2xl border border-zinc-200 p-4">
+      <div className="rounded-2xl border border-zinc-200 p-4 shadow-card">
         <h2 className="font-semibold mb-3">ผู้สมัครทั้งหมด ({candidates.length})</h2>
         {candidates.length === 0 ? (
           <p className="text-sm text-zinc-500">ยังไม่มีผู้สมัครในระบบ</p>

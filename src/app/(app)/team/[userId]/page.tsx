@@ -56,7 +56,7 @@ export default async function GuildMemberPage({ params }: { params: Promise<{ us
       </div>
 
       {/* Risk Radar — deliberately serious, no game elements, per §6 */}
-      <div className="rounded-2xl border border-zinc-200 p-4">
+      <div className="rounded-2xl border border-zinc-200 p-4 shadow-card">
         <div className="flex items-center justify-between mb-3">
           <h2 className="font-semibold">Risk Radar</h2>
           <span className={`text-xs font-medium px-2 py-1 rounded-full border ${RISK_STYLE[level].bg}`}>{RISK_STYLE[level].label}</span>
@@ -77,7 +77,7 @@ export default async function GuildMemberPage({ params }: { params: Promise<{ us
         <p className="text-xs text-zinc-400 mt-3">สัญญาณการพัฒนา ไม่ใช่การตัดสินการเลื่อนตำแหน่งอัตโนมัติ</p>
       </div>
 
-      <div className="rounded-2xl border border-zinc-200 p-4">
+      <div className="rounded-2xl border border-zinc-200 p-4 shadow-card">
         <h2 className="font-semibold mb-2">Gate Checklist — {phase?.gate.name}</h2>
         <ul className="flex flex-col gap-1 text-sm">
           {gateReqs.map((r) => (
@@ -91,7 +91,7 @@ export default async function GuildMemberPage({ params }: { params: Promise<{ us
         </div>
       </div>
 
-      <div className="rounded-2xl border border-zinc-200 p-4">
+      <div className="rounded-2xl border border-zinc-200 p-4 shadow-card">
         <h2 className="font-semibold mb-3">Evidence Review Queue ({pendingEvidence.length})</h2>
         {pendingEvidence.length === 0 ? (
           <p className="text-sm text-zinc-500">ไม่มีหลักฐานรอรีวิว</p>
@@ -116,7 +116,7 @@ export default async function GuildMemberPage({ params }: { params: Promise<{ us
         )}
       </div>
 
-      <div className="rounded-2xl border border-zinc-200 p-4">
+      <div className="rounded-2xl border border-zinc-200 p-4 shadow-card">
         <h2 className="font-semibold mb-3">มอบหมาย Coach Quest</h2>
         <form action={assignCoachQuestAction.bind(null, targetUserId)} className="flex flex-col gap-2">
           <input name="title" required aria-label="ชื่อภารกิจ" placeholder="ชื่อภารกิจ" className="border border-zinc-300 rounded-lg px-2 py-1.5 text-sm" />

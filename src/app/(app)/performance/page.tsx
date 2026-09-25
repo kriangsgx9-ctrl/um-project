@@ -58,7 +58,7 @@ export default async function PerformancePage() {
     <div className="flex flex-col gap-6 max-w-2xl">
       <h1 className="text-2xl font-bold">Performance</h1>
 
-      <div className="rounded-2xl border border-zinc-200 p-4">
+      <div className="rounded-2xl border border-zinc-200 p-4 shadow-card">
         <h2 className="font-semibold mb-3">PRODUCE</h2>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
           {produceMetrics.map((m) => {
@@ -70,7 +70,7 @@ export default async function PerformancePage() {
         <KpiTrendChart data={trend} />
       </div>
 
-      <div className="rounded-2xl border border-zinc-200 p-4">
+      <div className="rounded-2xl border border-zinc-200 p-4 shadow-card">
         <h2 className="font-semibold mb-3">RECRUIT</h2>
         <div className="grid grid-cols-3 gap-2">
           {STAGES.map((s, i) => (
@@ -79,7 +79,7 @@ export default async function PerformancePage() {
         </div>
       </div>
 
-      <div className="rounded-2xl border border-zinc-200 p-4">
+      <div className="rounded-2xl border border-zinc-200 p-4 shadow-card">
         <h2 className="font-semibold mb-3">DEVELOP</h2>
         <div className="grid grid-cols-3 gap-2">
           <StatCard label="Coaching Sessions" value={String(coachingCount)} />
@@ -89,7 +89,7 @@ export default async function PerformancePage() {
         <p className="text-xs text-zinc-400 mt-2">งาน Development ที่กำหนดไว้ในโปรแกรม: {developActionsDone} รายการ</p>
       </div>
 
-      <div className="rounded-2xl border border-zinc-200 p-4">
+      <div className="rounded-2xl border border-zinc-200 p-4 shadow-card">
         <h2 className="font-semibold mb-3">LEAD</h2>
         <div className="grid grid-cols-2 gap-2">
           <StatCard label="Team Meetings" value={String(teamMeetings)} sub={`เป้า ${kpiTarget(store, userId, currentMonth, "teamMeetings")}`} />
@@ -97,7 +97,7 @@ export default async function PerformancePage() {
         </div>
       </div>
 
-      <div className="rounded-2xl border border-zinc-200 p-4">
+      <div className="rounded-2xl border border-zinc-200 p-4 shadow-card">
         <h2 className="font-semibold mb-3">MANAGE</h2>
         <div className="flex items-center justify-between text-sm mb-1">
           <span>Action Completion</span>

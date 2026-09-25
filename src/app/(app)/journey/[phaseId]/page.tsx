@@ -61,12 +61,12 @@ export default async function ZoneDetailPage({ params }: { params: Promise<{ pha
         <p className="text-sm text-zinc-500 mt-1">{phase.objective}</p>
       </div>
 
-      <div className="rounded-2xl border border-zinc-200 p-4">
+      <div className="rounded-2xl border border-zinc-200 p-4 shadow-card">
         <h2 className="font-semibold mb-2">พันธกิจ</h2>
         <p className="text-sm text-zinc-600">{phase.mission}</p>
       </div>
 
-      <div className="rounded-2xl border border-zinc-200 p-4">
+      <div className="rounded-2xl border border-zinc-200 p-4 shadow-card">
         <h2 className="font-semibold mb-2">{dbUser.professionalMode ? `Gate Checklist — ${phase.gate.name}` : phase.gate.name}</h2>
         <div className="h-3 rounded-full bg-zinc-200 overflow-hidden">
           <div className={`h-full ${dbUser.professionalMode ? "bg-zinc-700" : "bg-red-500"}`} style={{ width: `${hpPct}%` }} />
@@ -103,7 +103,7 @@ export default async function ZoneDetailPage({ params }: { params: Promise<{ pha
         )}
       </div>
 
-      <div className="rounded-2xl border border-zinc-200 p-4">
+      <div className="rounded-2xl border border-zinc-200 p-4 shadow-card">
         <h2 className="font-semibold mb-3">Actions ในเฟสนี้</h2>
         <ul className="flex flex-col gap-2 text-sm">
           {phaseActions.map((a) => {

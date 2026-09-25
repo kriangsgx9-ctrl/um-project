@@ -26,7 +26,7 @@ export function AvatarBuilder({ initial, phasesPassed }: { initial: AvatarConfig
   }
 
   return (
-    <div className="rounded-2xl border border-zinc-200 p-4 flex flex-col gap-4">
+    <div className="rounded-2xl border border-zinc-200 p-4 shadow-card flex flex-col gap-4">
       <div className="flex items-center gap-4">
         {renderAvatarSvg(config, phasesPassed, 72)}
         <div className="text-sm text-zinc-500">แก้ไข Avatar ของคุณ — ไม่มีตัวละครลิขสิทธิ์ วาดจาก SVG ล้วน</div>

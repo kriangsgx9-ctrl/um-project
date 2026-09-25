@@ -5,6 +5,7 @@
 // buttons are not a fallback, they're required for keyboard/non-touch access
 // (v1 §42 accessibility); the swipe is a convenience on top.
 import Image from "next/image";
+import { CheckCircle2, FileText } from "lucide-react";
 import { useRef, useState, useTransition } from "react";
 import { requestRevisionAction, verifyEvidenceAction } from "@/app/(app)/team/[userId]/actions";
 import type { StoredEvidenceFile } from "@/lib/storage/evidence-files";
@@ -83,9 +84,10 @@ export function EvidenceReviewCard({
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={(e) => e.stopPropagation()}
-                  className="text-xs underline text-blue-700 px-2 py-1 border border-zinc-200 rounded-lg"
+                  className="flex items-center gap-1 text-xs underline text-blue-700 px-2 py-1 border border-zinc-200 rounded-lg"
                 >
-                  📄 {f.name}
+                  <FileText size={13} className="flex-none" />
+                  {f.name}
                 </a>
               )
             )}
@@ -98,9 +100,10 @@ export function EvidenceReviewCard({
         <button
           disabled={pending}
           onClick={doVerify}
-          className="flex-1 rounded-lg bg-green-600 text-white text-sm font-medium py-1.5 disabled:opacity-50"
+          className="flex-1 flex items-center justify-center gap-1.5 rounded-lg bg-green-600 text-white text-sm font-medium py-1.5 disabled:opacity-50"
         >
-          ✓ ยืนยันหลักฐาน (+80 XP)
+          <CheckCircle2 size={16} />
+          ยืนยันหลักฐาน (+80 XP)
         </button>
         <button
           disabled={pending}

@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { Flame } from "lucide-react";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { loadStoreForUser } from "@/lib/data/load-store";
@@ -77,7 +78,10 @@ export default async function DashboardPage() {
               </div>
               <div className="text-xs text-zinc-400 mt-0.5">{progress.xp} XP</div>
             </div>
-            <div className="text-sm font-semibold text-orange-600 flex-none">🔥 {progress.streak}</div>
+            <div className="flex items-center gap-1 text-sm font-semibold text-orange-600 flex-none">
+              <Flame size={16} className="fill-orange-500 text-orange-600" />
+              {progress.streak}
+            </div>
           </>
         )}
       </div>
@@ -90,7 +94,7 @@ export default async function DashboardPage() {
         <div className="text-base font-semibold mt-1">{nextMissionTitle}</div>
       </a>
 
-      <div className="rounded-2xl border border-zinc-200 p-4">
+      <div className="rounded-2xl border border-zinc-200 p-4 shadow-card">
         <h2 className="font-semibold mb-3">{professionalMode ? "งานวันนี้" : "Daily Missions"}</h2>
         <ul className="flex flex-col gap-3">
           {sortedMissions.map((m) => (
@@ -115,7 +119,7 @@ export default async function DashboardPage() {
         </ul>
       </div>
 
-      <div className="rounded-2xl border border-zinc-200 p-4">
+      <div className="rounded-2xl border border-zinc-200 p-4 shadow-card">
         <h2 className="font-semibold mb-3">เส้นทางสู่ UM</h2>
         <div className="flex gap-1">
           {store.phases.map((p) => (
@@ -134,7 +138,7 @@ export default async function DashboardPage() {
       </div>
 
       {phase && (
-        <div className="rounded-2xl border border-zinc-200 p-4">
+        <div className="rounded-2xl border border-zinc-200 p-4 shadow-card">
           <h2 className="font-semibold mb-2">{professionalMode ? `Gate Checklist — ${phase.gate.name}` : phase.gate.name}</h2>
           <div className="h-3 rounded-full bg-zinc-200 overflow-hidden">
             <div className={`h-full ${professionalMode ? "bg-zinc-700" : "bg-red-500"}`} style={{ width: `${gateReqs.length ? Math.round((gateOk / gateReqs.length) * 100) : 0}%` }} />
@@ -146,7 +150,7 @@ export default async function DashboardPage() {
       )}
 
       {!professionalMode && (
-        <div className="rounded-2xl border border-zinc-200 p-4">
+        <div className="rounded-2xl border border-zinc-200 p-4 shadow-card">
           <h2 className="font-semibold mb-3">Kudos ล่าสุด</h2>
           {recentKudos.length === 0 ? (
             <p className="text-sm text-zinc-500 text-center">ยังไม่มี Kudos — ทำภารกิจต่อไปเพื่อให้โค้ชเห็นความก้าวหน้า!</p>

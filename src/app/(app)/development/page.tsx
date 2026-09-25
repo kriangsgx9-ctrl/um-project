@@ -48,7 +48,7 @@ export default async function DevelopmentPage() {
         </div>
       )}
 
-      <div className="rounded-2xl border border-zinc-200 p-4">
+      <div className="rounded-2xl border border-zinc-200 p-4 shadow-card">
         <h2 className="font-semibold mb-3">Competency Matrix</h2>
         {competencies.length === 0 ? (
           <p className="text-sm text-zinc-500">ยังไม่มีข้อมูล Competency</p>
@@ -85,7 +85,7 @@ export default async function DevelopmentPage() {
       </div>
 
       {coachQuests.length > 0 && (
-        <div className="rounded-2xl border border-zinc-200 p-4">
+        <div className="rounded-2xl border border-zinc-200 p-4 shadow-card">
           <h2 className="font-semibold mb-3">Development Plan (Coach Quest)</h2>
           <ul className="flex flex-col gap-2">
             {coachQuests.map((q) => (
@@ -99,7 +99,7 @@ export default async function DevelopmentPage() {
         </div>
       )}
 
-      <div className="rounded-2xl border border-zinc-200 p-4">
+      <div className="rounded-2xl border border-zinc-200 p-4 shadow-card">
         <h2 className="font-semibold mb-3">Coaching Sessions ({coaching.length})</h2>
         {coaching.length === 0 ? (
           <p className="text-sm text-zinc-500">ยังไม่มีบันทึกโค้ชชิ่ง</p>

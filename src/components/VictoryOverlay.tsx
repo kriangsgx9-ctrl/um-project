@@ -4,6 +4,7 @@
 // §5.2 / Acceptance Criteria §13, and shows at most once per gate — the caller
 // only renders this when acknowledgedAt is still null (see actions.ts).
 import { useEffect } from "react";
+import { Trophy } from "lucide-react";
 import confetti from "canvas-confetti";
 import { acknowledgeVictoryAction } from "@/app/(app)/journey/[phaseId]/actions";
 import { ShareCardButton } from "@/components/ShareCardButton";
@@ -32,7 +33,9 @@ export function VictoryOverlay({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-6">
       <div className="bg-white text-zinc-900 rounded-2xl p-8 text-center max-w-sm w-full">
-        <div className="text-5xl mb-2">🏆</div>
+        <div className="w-16 h-16 mx-auto mb-3 rounded-full bg-[#fff1e6] text-[#ffb800] grid place-items-center">
+          <Trophy size={32} strokeWidth={2} />
+        </div>
         <h2 className="text-xl font-bold">ชนะ {gateName}!</h2>
         <p className="text-[#ffb800] font-bold text-lg mt-2">+500 XP</p>
         <p className="text-zinc-500 text-sm mt-1">ปลดล็อกโซนใหม่แล้ว</p>

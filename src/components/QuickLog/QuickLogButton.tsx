@@ -4,6 +4,7 @@
 // each ≤2 taps (not counting typing) and each backed by a real server action
 // that persists data and awards real XP — see src/app/(app)/quick-log/actions.ts.
 import { useState, useTransition } from "react";
+import { BarChart3, Camera, Handshake, Paperclip, Phone, Plus, X } from "lucide-react";
 import {
   type ContactOutcome,
   type KpiMetric,
@@ -99,34 +100,46 @@ export function QuickLogButton({ candidates, evidenceActions }: { candidates: Ca
       <button
         onClick={() => setOpen(true)}
         aria-label="Quick Log"
-        className="fixed left-1/2 -translate-x-1/2 bottom-24 md:bottom-6 z-40 w-14 h-14 rounded-full bg-[#ff6b00] text-[#111111] text-2xl font-bold shadow-lg grid place-items-center"
+        className="fixed left-1/2 -translate-x-1/2 bottom-24 md:bottom-6 z-40 w-14 h-14 rounded-full bg-[#ff6b00] text-[#111111] shadow-lg grid place-items-center transition-transform hover:scale-105"
       >
-        +
+        <Plus size={26} strokeWidth={2.5} />
       </button>
 
       {open && (
         <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/40" onClick={close}>
           <div
-            className="bg-white text-zinc-900 w-full md:max-w-md md:rounded-2xl rounded-t-2xl p-5 max-h-[80vh] overflow-y-auto"
+            className="relative bg-white text-zinc-900 w-full md:max-w-md md:rounded-2xl rounded-t-2xl p-5 max-h-[80vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
+            <button onClick={close} aria-label="ปิด" className="absolute right-4 top-4 w-8 h-8 rounded-full grid place-items-center text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600">
+              <X size={18} />
+            </button>
+
             {tab === "menu" && (
               <div className="grid grid-cols-2 gap-3">
-                <button onClick={() => setTab("contact")} className="rounded-xl border border-zinc-200 p-4 text-left">
-                  <div className="text-xl">📞</div>
-                  <div className="font-semibold text-sm mt-1">บันทึกการติดต่อผู้สมัคร</div>
+                <button onClick={() => setTab("contact")} className="rounded-xl border border-zinc-200 p-4 text-left transition-colors hover:border-[#ff6b00]/40 hover:bg-[#fff8f2]">
+                  <div className="w-9 h-9 rounded-lg bg-[#fff1e6] text-[#b84c00] grid place-items-center">
+                    <Phone size={18} />
+                  </div>
+                  <div className="font-semibold text-sm mt-2">บันทึกการติดต่อผู้สมัคร</div>
                 </button>
-                <button onClick={() => setTab("kpi")} className="rounded-xl border border-zinc-200 p-4 text-left">
-                  <div className="text-xl">📊</div>
-                  <div className="font-semibold text-sm mt-1">บันทึก KPI วันนี้</div>
+                <button onClick={() => setTab("kpi")} className="rounded-xl border border-zinc-200 p-4 text-left transition-colors hover:border-[#ff6b00]/40 hover:bg-[#fff8f2]">
+                  <div className="w-9 h-9 rounded-lg bg-[#fff1e6] text-[#b84c00] grid place-items-center">
+                    <BarChart3 size={18} />
+                  </div>
+                  <div className="font-semibold text-sm mt-2">บันทึก KPI วันนี้</div>
                 </button>
-                <button onClick={() => setTab("evidence")} className="rounded-xl border border-zinc-200 p-4 text-left">
-                  <div className="text-xl">📸</div>
-                  <div className="font-semibold text-sm mt-1">ส่งหลักฐาน</div>
+                <button onClick={() => setTab("evidence")} className="rounded-xl border border-zinc-200 p-4 text-left transition-colors hover:border-[#ff6b00]/40 hover:bg-[#fff8f2]">
+                  <div className="w-9 h-9 rounded-lg bg-[#fff1e6] text-[#b84c00] grid place-items-center">
+                    <Camera size={18} />
+                  </div>
+                  <div className="font-semibold text-sm mt-2">ส่งหลักฐาน</div>
                 </button>
-                <button onClick={() => setTab("coaching")} className="rounded-xl border border-zinc-200 p-4 text-left">
-                  <div className="text-xl">🤝</div>
-                  <div className="font-semibold text-sm mt-1">บันทึกโค้ชชิ่ง/1-on-1</div>
+                <button onClick={() => setTab("coaching")} className="rounded-xl border border-zinc-200 p-4 text-left transition-colors hover:border-[#ff6b00]/40 hover:bg-[#fff8f2]">
+                  <div className="w-9 h-9 rounded-lg bg-[#fff1e6] text-[#b84c00] grid place-items-center">
+                    <Handshake size={18} />
+                  </div>
+                  <div className="font-semibold text-sm mt-2">บันทึกโค้ชชิ่ง/1-on-1</div>
                 </button>
               </div>
             )}
@@ -232,10 +245,11 @@ export function QuickLogButton({ candidates, evidenceActions }: { candidates: Ca
                   className="text-xs"
                 />
                 {evidenceFiles.length > 0 && (
-                  <ul className="text-xs text-zinc-500 flex flex-col gap-0.5">
+                  <ul className="text-xs text-zinc-500 flex flex-col gap-1">
                     {evidenceFiles.map((f) => (
-                      <li key={f.name}>
-                        📎 {f.name} ({Math.ceil(f.size / 1024)} KB)
+                      <li key={f.name} className="flex items-center gap-1.5">
+                        <Paperclip size={12} className="flex-none" />
+                        {f.name} ({Math.ceil(f.size / 1024)} KB)
                       </li>
                     ))}
                   </ul>
@@ -295,9 +309,6 @@ export function QuickLogButton({ candidates, evidenceActions }: { candidates: Ca
                 ← กลับ
               </button>
             )}
-            <button onClick={close} className="mt-2 text-xs text-zinc-400 block">
-              ปิด
-            </button>
           </div>
         </div>
       )}

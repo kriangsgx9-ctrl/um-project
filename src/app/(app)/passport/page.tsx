@@ -79,7 +79,7 @@ export default async function PassportPage() {
         </div>
       </div>
 
-      <div className="rounded-2xl border border-zinc-200 p-4">
+      <div className="rounded-2xl border border-zinc-200 p-4 shadow-card">
         <h2 className="font-semibold mb-2">Internal UM Readiness</h2>
         <ReadinessRadar data={radarData} />
         <p className="text-xs text-zinc-400 mt-2">
@@ -87,7 +87,7 @@ export default async function PassportPage() {
         </p>
       </div>
 
-      <div className="rounded-2xl border border-zinc-200 p-4">
+      <div className="rounded-2xl border border-zinc-200 p-4 shadow-card">
         <h2 className="font-semibold mb-3">Badges</h2>
         <div className="grid grid-cols-2 gap-2">
           {badgeList.map((b) => (

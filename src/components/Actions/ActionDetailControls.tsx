@@ -5,6 +5,7 @@
 // storage as Quick Log), so there is exactly one evidence-submission code path
 // in the app, not two.
 import { useState, useTransition } from "react";
+import { Paperclip } from "lucide-react";
 import { completeActionWithoutEvidenceAction, startActionAction } from "@/app/(app)/actions/actions";
 import { submitEvidenceAction } from "@/app/(app)/quick-log/actions";
 import { MAX_EVIDENCE_FILES } from "@/lib/storage/evidence-limits";
@@ -94,10 +95,11 @@ export function ActionDetailControls({ actionId, status, requiresEvidence }: { a
             className="text-xs"
           />
           {files.length > 0 && (
-            <ul className="text-xs text-zinc-500 flex flex-col gap-0.5">
+            <ul className="text-xs text-zinc-500 flex flex-col gap-1">
               {files.map((f) => (
-                <li key={f.name}>
-                  📎 {f.name} ({Math.ceil(f.size / 1024)} KB)
+                <li key={f.name} className="flex items-center gap-1.5">
+                  <Paperclip size={12} className="flex-none" />
+                  {f.name} ({Math.ceil(f.size / 1024)} KB)
                 </li>
               ))}
             </ul>

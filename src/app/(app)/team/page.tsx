@@ -103,7 +103,7 @@ export default async function TeamPage() {
       <h1 className="text-2xl font-bold">Team</h1>
 
       {isGuildLeader && (
-        <div className="rounded-2xl border border-zinc-200 p-4">
+        <div className="rounded-2xl border border-zinc-200 p-4 shadow-card">
           <h2 className="font-semibold mb-3">Guild Dashboard ({guildCards.length})</h2>
 
           {guildCards.length > 0 && (
@@ -184,7 +184,7 @@ export default async function TeamPage() {
       )}
 
       {isReviewer && (
-        <div className="rounded-2xl border border-zinc-200 p-4">
+        <div className="rounded-2xl border border-zinc-200 p-4 shadow-card">
           <h2 className="font-semibold mb-3">สร้าง Team Expedition</h2>
           <form action={createTeamExpeditionAction} className="flex flex-col gap-2">
             <input
@@ -223,7 +223,7 @@ export default async function TeamPage() {
       )}
 
       {leaderboard?.enabled && (
-        <div className="rounded-2xl border border-zinc-200 p-4">
+        <div className="rounded-2xl border border-zinc-200 p-4 shadow-card">
           <h2 className="font-semibold mb-3">Leaderboard สัปดาห์นี้</h2>
           <ol className="flex flex-col gap-2 text-sm">
             {leaderboard.top.map((e) => (
@@ -245,7 +245,7 @@ export default async function TeamPage() {
       )}
 
       {expedition && (
-        <div className="rounded-2xl border border-zinc-200 p-4">
+        <div className="rounded-2xl border border-zinc-200 p-4 shadow-card">
           <h2 className="font-semibold mb-2">Team Expedition: {expedition.challenge.title}</h2>
           <div className="h-3 rounded-full bg-zinc-200 overflow-hidden">
             <div
@@ -261,7 +261,7 @@ export default async function TeamPage() {
       )}
 
       {roster.length > 0 && (
-        <div className="rounded-2xl border border-zinc-200 p-4">
+        <div className="rounded-2xl border border-zinc-200 p-4 shadow-card">
           <h2 className="font-semibold mb-3">เพื่อนร่วม Cohort</h2>
           <ul className="flex flex-col gap-3">
             {roster.map((u) => (
@@ -281,7 +281,7 @@ export default async function TeamPage() {
       )}
 
       {isReviewer && (
-        <div className="rounded-2xl border border-zinc-200 p-4">
+        <div className="rounded-2xl border border-zinc-200 p-4 shadow-card">
           <h2 className="font-semibold mb-3">คำขอรีวิว Gate ({pending.length})</h2>
           {pending.length === 0 && <p className="text-sm text-zinc-500">ยังไม่มีคำขอรีวิว Gate</p>}
           <ul className="flex flex-col gap-4">
