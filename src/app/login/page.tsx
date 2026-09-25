@@ -1,5 +1,11 @@
 import { loginAction } from "./actions";
 
+// Demo-account hints only make sense against the seeded dev/demo database —
+// showing them on a real deployment would invite real people to try
+// credentials that were never created there. NODE_ENV is set by Next.js
+// itself in a production build/deploy, no extra config needed.
+const isDemoEnv = process.env.NODE_ENV !== "production";
+
 export default async function LoginPage({
   searchParams,
 }: {
@@ -14,7 +20,7 @@ export default async function LoginPage({
           <h1 className="text-4xl font-extrabold leading-tight max-w-xs">From Agent → Leader → UM</h1>
           <p className="mt-4 text-zinc-300">Build People. Build Business. Build Leaders.</p>
         </div>
-        <div className="text-xs text-zinc-500">Demo cohort — data is fictional</div>
+        {isDemoEnv && <div className="text-xs text-zinc-500">Demo cohort — data is fictional</div>}
       </div>
       <div className="flex items-center justify-center p-8">
         <form action={loginAction} className="w-full max-w-sm flex flex-col gap-4">
@@ -22,7 +28,7 @@ export default async function LoginPage({
           {error && <p className="text-sm text-red-600">อีเมลหรือรหัสผ่านไม่ถูกต้อง</p>}
           <label className="flex flex-col gap-1 text-sm font-medium">
             อีเมล
-            <input name="email" type="email" required className="h-10 rounded-lg border border-zinc-300 px-3" placeholder="um01@demo.prime" />
+            <input name="email" type="email" required className="h-10 rounded-lg border border-zinc-300 px-3" placeholder={isDemoEnv ? "um01@demo.prime" : "you@company.com"} />
           </label>
           <label className="flex flex-col gap-1 text-sm font-medium">
             รหัสผ่าน
@@ -31,9 +37,11 @@ export default async function LoginPage({
           <button type="submit" className="h-10 rounded-lg bg-[#ff6b00] text-black font-semibold mt-2">
             เข้าสู่ระบบ
           </button>
-          <p className="text-xs text-zinc-500">
-            บัญชีสาธิต: um01@demo.prime / coach01@demo.prime / al01@demo.prime / admin01@demo.prime — รหัสผ่าน prime2026
-          </p>
+          {isDemoEnv && (
+            <p className="text-xs text-zinc-500">
+              บัญชีสาธิต: um01@demo.prime / coach01@demo.prime / al01@demo.prime / admin01@demo.prime — รหัสผ่าน prime2026
+            </p>
+          )}
         </form>
       </div>
     </div>
