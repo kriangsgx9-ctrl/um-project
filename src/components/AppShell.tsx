@@ -86,10 +86,19 @@ export function AppShell({
             </NavLink>
           ))}
         </nav>
-        <div className="mt-auto text-xs text-zinc-500 px-2 pt-4 border-t border-white/10">
-          <div className="text-zinc-200 font-medium">{userName}</div>
-          <div className="capitalize">{role}</div>
-        </div>
+        <NavLink
+          href="/profile"
+          className="mt-auto flex items-center gap-2.5 text-xs text-zinc-500 px-2 pt-4 pb-2.5 border-t border-white/10 hover:bg-white/5 hover:text-zinc-300 rounded-b-lg transition-colors"
+          activeClassName="!bg-white/5 !text-zinc-200"
+        >
+          <span className="w-7 h-7 rounded-full bg-white/10 grid place-items-center flex-none">
+            <User size={14} />
+          </span>
+          <span>
+            <div className="text-zinc-200 font-medium">{userName}</div>
+            <div className="capitalize">{role}</div>
+          </span>
+        </NavLink>
       </aside>
 
       <main id="main" className="p-4 md:p-8 pb-32 md:pb-8">
