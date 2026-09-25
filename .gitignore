@@ -39,6 +39,10 @@ yarn-error.log*
 # locally-stored evidence uploads (real user files, not fixtures — see src/lib/storage/evidence-files.ts)
 /public/uploads/
 
+# this machine's local dev-server launcher/log (Windows Scheduled Task), not part of the app
+/dev-server.log
+/start-dev.bat
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
