@@ -107,7 +107,7 @@ export function QuickLogButton({ candidates, evidenceActions }: { candidates: Ca
       {open && (
         <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/40" onClick={close}>
           <div
-            className="bg-white w-full md:max-w-md md:rounded-2xl rounded-t-2xl p-5 max-h-[80vh] overflow-y-auto"
+            className="bg-white text-zinc-900 w-full md:max-w-md md:rounded-2xl rounded-t-2xl p-5 max-h-[80vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             {tab === "menu" && (

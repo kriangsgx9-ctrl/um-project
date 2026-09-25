@@ -64,7 +64,7 @@ export function EvidenceReviewCard({
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
         style={{ transform: `translateX(${dragX}px) rotate(${tilt}deg)`, touchAction: "pan-y" }}
-        className={`rounded-xl border p-4 cursor-grab select-none transition-colors ${bg}`}
+        className={`rounded-xl border p-4 cursor-grab select-none transition-colors text-zinc-900 ${bg}`}
       >
         <div className="font-medium text-sm">{title}</div>
         <div className="text-xs text-zinc-500 mt-1">{date}</div>

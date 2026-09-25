@@ -31,7 +31,7 @@ export function VictoryOverlay({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-6">
-      <div className="bg-white rounded-2xl p-8 text-center max-w-sm w-full">
+      <div className="bg-white text-zinc-900 rounded-2xl p-8 text-center max-w-sm w-full">
         <div className="text-5xl mb-2">🏆</div>
         <h2 className="text-xl font-bold">ชนะ {gateName}!</h2>
         <p className="text-[#ffb800] font-bold text-lg mt-2">+500 XP</p>
