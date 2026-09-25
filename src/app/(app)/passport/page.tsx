@@ -34,10 +34,12 @@ export default async function PassportPage() {
   const progress = await getOrCreateProgress(prisma, userId);
   const badgeList = await syncUserBadges(prisma, store, userId, progress.bestStreak);
   const gatesPassed = store.gateReviews.filter((g) => g.status === "approved").length;
+  const evidenceVerified = store.evidence.filter((e) => e.userId === userId && e.status === "verified").length;
   const daysInProgram = Math.max(0, diffDays(today(), user.startDate));
   const avatarConfig = (dbUser.avatarConfig as AvatarConfig | null) ?? DEFAULT_AVATAR_CONFIG;
 
   const radarData = DIMS.map((d) => ({ dimension: d.th, value: r.dims[d.k] ?? 0 }));
+  const professionalMode = dbUser.professionalMode;
 
   return (
     <div className="flex flex-col gap-6 max-w-xl">
@@ -49,18 +51,20 @@ export default async function PassportPage() {
           <div className="text-sm text-zinc-400">
             Phase {user.currentPhase}/{store.phases.length} · วันที่ {daysInProgram} ในโปรแกรม
           </div>
-          <div className="mt-2">
-            <ShareCardButton
-              buttonLabel="แชร์การ์ดความสำเร็จ →"
-              cardProps={{
-                name: user.name,
-                avatarConfig,
-                phasesPassed: user.currentPhase - 1,
-                headline: `Level ${progress.level} · ${rankForLevel(progress.level)}`,
-                subline: `🔥 Streak ${progress.streak} วัน`,
-              }}
-            />
-          </div>
+          {!professionalMode && (
+            <div className="mt-2">
+              <ShareCardButton
+                buttonLabel="แชร์การ์ดความสำเร็จ →"
+                cardProps={{
+                  name: user.name,
+                  avatarConfig,
+                  phasesPassed: user.currentPhase - 1,
+                  headline: `Level ${progress.level} · ${rankForLevel(progress.level)}`,
+                  subline: `Streak ${progress.streak} วัน`,
+                }}
+              />
+            </div>
+          )}
         </div>
       </div>
 
@@ -74,8 +78,8 @@ export default async function PassportPage() {
           <div className="text-xs text-zinc-500">Gates ผ่านแล้ว</div>
         </div>
         <div className="rounded-xl border border-zinc-200 p-3">
-          <div className="text-2xl font-bold">{badgeList.filter((b) => b.tier).length}</div>
-          <div className="text-xs text-zinc-500">Badges</div>
+          <div className="text-2xl font-bold">{evidenceVerified}</div>
+          <div className="text-xs text-zinc-500">Evidence ยืนยันแล้ว</div>
         </div>
       </div>
 
@@ -87,40 +91,42 @@ export default async function PassportPage() {
         </p>
       </div>
 
-      <div className="rounded-2xl border border-zinc-200 p-4 shadow-card">
-        <h2 className="font-semibold mb-3">Badges</h2>
-        <div className="grid grid-cols-2 gap-2">
-          {badgeList.map((b) => (
-            <div key={b.k} className={`rounded-xl border p-3 text-sm ${b.tier ? TIER_COLOR[b.tier] : "border-zinc-200 text-zinc-400"}`}>
-              <div className="font-medium">{b.l}</div>
-              {b.tier ? (
-                <div className="text-xs mt-0.5 font-semibold">{TIER_LABEL[b.tier]}</div>
-              ) : (
-                <div className="text-xs mt-0.5">ยังไม่ได้ปลดล็อก</div>
-              )}
-              {b.nextTier && (
-                <div className="text-[11px] mt-1 opacity-80">
-                  อีก {Math.max(0, b.nextThreshold! - b.current)} {b.unit} จะได้ {TIER_LABEL[b.nextTier]}
-                </div>
-              )}
-              {b.tier && (
-                <div className="mt-2">
-                  <ShareCardButton
-                    buttonLabel="แชร์ →"
-                    cardProps={{
-                      name: user.name,
-                      avatarConfig,
-                      phasesPassed: user.currentPhase - 1,
-                      headline: `ปลดล็อก Badge: ${b.l}`,
-                      subline: TIER_LABEL[b.tier],
-                    }}
-                  />
-                </div>
-              )}
-            </div>
-          ))}
+      {!professionalMode && (
+        <div className="rounded-2xl border border-zinc-200 p-4 shadow-card">
+          <h2 className="font-semibold mb-3">Badges</h2>
+          <div className="grid grid-cols-2 gap-2">
+            {badgeList.map((b) => (
+              <div key={b.k} className={`rounded-xl border p-3 text-sm ${b.tier ? TIER_COLOR[b.tier] : "border-zinc-200 text-zinc-400"}`}>
+                <div className="font-medium">{b.l}</div>
+                {b.tier ? (
+                  <div className="text-xs mt-0.5 font-semibold">{TIER_LABEL[b.tier]}</div>
+                ) : (
+                  <div className="text-xs mt-0.5">ยังไม่ได้ปลดล็อก</div>
+                )}
+                {b.nextTier && (
+                  <div className="text-[11px] mt-1 opacity-80">
+                    อีก {Math.max(0, b.nextThreshold! - b.current)} {b.unit} จะได้ {TIER_LABEL[b.nextTier]}
+                  </div>
+                )}
+                {b.tier && (
+                  <div className="mt-2">
+                    <ShareCardButton
+                      buttonLabel="แชร์ →"
+                      cardProps={{
+                        name: user.name,
+                        avatarConfig,
+                        phasesPassed: user.currentPhase - 1,
+                        headline: `ปลดล็อก Badge: ${b.l}`,
+                        subline: TIER_LABEL[b.tier],
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
