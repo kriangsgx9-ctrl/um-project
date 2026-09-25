@@ -10,9 +10,12 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
+    "postinstall": "prisma generate",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
-    "db:seed": "tsx prisma/seed.ts"
+    "db:seed": "tsx prisma/seed.ts",
+    "db:seed:program": "tsx prisma/seed-program.ts",
+    "db:create-users": "tsx prisma/create-real-users.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
@@ -21,6 +24,7 @@
     "@hookform/resolvers": "^5.9.1",
     "@prisma/adapter-pg": "^7.10.0",
     "@prisma/client": "7.10.0",
+    "@vercel/blob": "^2.8.0",
     "bcryptjs": "^3.0.3",
     "canvas-confetti": "^1.9.4",
     "date-fns": "^4.4.0",

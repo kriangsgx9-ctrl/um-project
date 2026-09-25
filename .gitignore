@@ -43,6 +43,9 @@ yarn-error.log*
 /dev-server.log
 /start-dev.bat
 
+# real employee PII for prisma/create-real-users.ts — never commit actual names/emails
+/prisma/real-users*.json
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
